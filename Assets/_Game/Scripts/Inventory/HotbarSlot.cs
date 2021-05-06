@@ -24,6 +24,7 @@ public class HotbarSlot : ItemSlotUI , IDropHandler
         get { return slotItem; }
         set { slotItem = value; UpdateSlotUI(null); }
     }
+    // Switch out the HotBarItem Slotitem for an acutal ItemSlot and remove all referenceSlotIndex as we now store the reference to the inventory.
 
     //public int ReferenceSlotIndex { get => referenceSlotIndex; set => referenceSlotIndex = value; }
 
