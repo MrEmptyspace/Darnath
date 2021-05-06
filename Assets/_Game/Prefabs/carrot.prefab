@@ -31,7 +31,7 @@ MonoBehaviour:
   itemName: carrot
   itemDescription: What a nice looking carrot
   sellPrice: 1
-  maxStack: 3
+  maxStack: 2
 --- !u!1001 &3352813620763713403
 PrefabInstance:
   m_ObjectHideFlags: 0

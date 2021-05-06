@@ -22,8 +22,7 @@ public class ItemDragHandler : MonoBehaviour, IPointerDownHandler, IDragHandler,
     {
         if (isHovering)
         {
-            //INVOKE EVENT
-            EventManager.TriggerEvent(EventManager.Events.onMouseStartHoverTooltip);
+            EventManager.TriggerEvent(Events.onMouseStartHoverTooltip);
             isHovering = false;
         }
     }
@@ -32,8 +31,7 @@ public class ItemDragHandler : MonoBehaviour, IPointerDownHandler, IDragHandler,
     {
         if(eventData.button == PointerEventData.InputButton.Left)
         {
-            //INVOKE EVENT
-            EventManager.TriggerEvent(EventManager.Events.onMouseEndHoverTooltip);
+            EventManager.TriggerEvent(Events.onMouseEndHoverTooltip);
             originalParent = transform.parent;
 
             transform.SetParent(transform.parent.parent);
@@ -63,14 +61,14 @@ public class ItemDragHandler : MonoBehaviour, IPointerDownHandler, IDragHandler,
     public void OnPointerEnter(PointerEventData eventData)
     {
         Dictionary<string, object> message = new Dictionary<string, object>{{ "infoItem", ItemSlotUI.SlotItem }};
-        EventManager.TriggerEvent(EventManager.Events.onMouseStartHoverTooltip, message);
+        EventManager.TriggerEvent(Events.onMouseStartHoverTooltip, message);
         isHovering = true;
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         Dictionary<string, object> message = new Dictionary<string, object> { { "infoItem", ItemSlotUI.SlotItem } };
-        EventManager.TriggerEvent(EventManager.Events.onMouseEndHoverTooltip, message);
+        EventManager.TriggerEvent(Events.onMouseEndHoverTooltip, message);
 
         isHovering = false;
     }

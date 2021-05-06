@@ -12,8 +12,7 @@ public class InventoryItem : HotbarItem
     [SerializeField] [Min(1)] private int maxStack = 1;
     public int SellPrice { get => sellPrice; }
     public int MaxStack { get => maxStack; }
-    
-
+   
     void Start()
     {
         //Change item tag to Item to detect when we look at it
@@ -53,7 +52,7 @@ public class InventoryItem : HotbarItem
         //Inistiate base on an object
 
         base.Name = name;
-        Icon = Utils.LoadTexture(name, "png","Sprites/");
+        //Icon = Utils.LoadTexture(name, "png","Sprites/");
         this.itemName = name;
         //this.value = valueSADASD;
         //LOAD ITEM DATA
@@ -62,4 +61,5 @@ public class InventoryItem : HotbarItem
         //value = (int) Utils.LoadItemData(name);
         Debug.Log("Need to implement creating image for inventory");
     }
+
 }

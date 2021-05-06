@@ -53,7 +53,7 @@ public class EventManager : MonoBehaviour
         {
             thisEvent += listener;
             instance.eventDictionary.Add(eventName, thisEvent);
-            Debug.Log("Added Event Listener | Count = " + instance.eventDictionary.Count);
+            //Debug.Log("Added Event Listener | Count = " + instance.eventDictionary.Count);
         }
     }
 
@@ -88,11 +88,5 @@ public class EventManager : MonoBehaviour
     }
 
 
-    public static class Events
-    {
-        public const string InventoryUpdated = "InventoryUpdated";
-        public const string ItemDropped = "ItemDropped";
-        public const string onMouseStartHoverTooltip = "onMouseStartHoverTooltip";
-        public const string onMouseEndHoverTooltip = "onMouseEndHoverTooltip";
-    }
+
 }

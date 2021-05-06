@@ -46,19 +46,6 @@ public class InventorySlot : ItemSlotUI, IDropHandler
         }
     }
 
-    //public override void UpdateSlotUI()
-    //{
-    //    if(ItemSlot.item == null)
-    //    {
-    //        EnableSlotUI(false);
-    //        return;
-    //    }
-
-    //    EnableSlotUI(true);
-
-    //    itemIconImage.sprite = ItemSlot.item.Icon;
-    //    itemQuantityText.text = ItemSlot.quantity > 1 ? ItemSlot.quantity.ToString() : "";
-    //}
 
     public override void UpdateSlotUI(Dictionary<string, object> message)
     {

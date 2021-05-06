@@ -8,11 +8,35 @@ public class ItemContainer : IItemContainer
 {
     private ItemSlot[] itemSlots = new ItemSlot[24];
 
-    //public GameEvent OnItemsUpdated;
-
     public ItemContainer(int size) => itemSlots = new ItemSlot[size];
 
     public ItemSlot GetSlotByIndex(int index) => itemSlots[index];
+    
+   public int GetIndexBySlot(ItemSlot itemSlot)
+    {
+        //int index = Array.FindIndex(itemSlots, slot => slot.item == itemSlot.item);
+        int index = -1;
+        for (int i = 0; i < itemSlots.Length; i++)
+        {
+            if(itemSlots[i].item != null)
+            {
+                if (itemSlots[i].item == itemSlot.item)
+                {
+                    index = i;
+                    break;
+                }
+                    
+                
+            }
+        }
+
+
+        Debug.Log("Searched for index " + index);
+        return index;
+    }
+
+
+
     public ItemSlot AddItem(ItemSlot itemSlot)
     {
         for (int i = 0; i < itemSlots.Length; i++)
@@ -32,8 +56,8 @@ public class ItemContainer : IItemContainer
                         itemSlot.quantity = 0;
 
                         //Setup Stack implementation
-                        itemSlots[i].items.AddRange(itemSlot.items);
-                        itemSlot.items = new List<InventoryItem>();
+                        //itemSlots[i].items.AddRange(itemSlot.items);
+                        //itemSlot.items = new List<InventoryItem>();
 
                         EventManager.TriggerEvent("InventoryUpdated");
                         return itemSlot;
@@ -44,11 +68,11 @@ public class ItemContainer : IItemContainer
                         itemSlot.quantity -= slotRemainingSpace;
 
                         //Add as much as possible from the added item slot to the new item slot and remove Inventory items from list
-                        for (int x = slotRemainingSpace - 1; x >= 0; x--)
-                        {
-                            itemSlots[i].items.Add(itemSlot.items[x]);
-                            itemSlot.items.Remove(itemSlot.items[x]);
-                        }
+                        //for (int x = slotRemainingSpace - 1; x >= 0; x--)
+                        //{
+                        //    itemSlots[i].items.Add(itemSlot.items[x]);
+                        //    itemSlot.items.Remove(itemSlot.items[x]);
+                        //}
 
                         //Setup Stack implementation
                         //The item we just added needs to have its stack 
@@ -70,11 +94,11 @@ public class ItemContainer : IItemContainer
                     itemSlots[i] = itemSlot;
                     itemSlot.quantity = 0;
 
-                    itemSlots[i].items= itemSlot.items;
-                    itemSlot.items = new List<InventoryItem>();
+                    //itemSlots[i].items= itemSlot.items;
+                    //itemSlot.items = new List<InventoryItem>();
 
                     //OnItemsUpdated.Raise();
-                    EventManager.TriggerEvent(EventManager.Events.InventoryUpdated);
+                    EventManager.TriggerEvent(Events.InventoryUpdated);
                     return itemSlot;
                 }
                 else
@@ -87,7 +111,7 @@ public class ItemContainer : IItemContainer
             }
         }
         //OnItemsUpdated.Raise();
-        EventManager.TriggerEvent(EventManager.Events.InventoryUpdated);
+        EventManager.TriggerEvent(Events.InventoryUpdated);
 
         return itemSlot;
     }
@@ -126,8 +150,8 @@ public class ItemContainer : IItemContainer
         itemSlots[slotIndex] = new ItemSlot();
 
         //OnItemsUpdated.Raise();
-        EventManager.TriggerEvent(EventManager.Events.InventoryUpdated);
-
+        EventManager.TriggerEvent(Events.InventoryUpdated);
+        //EventManager.TriggerEvent(Events.HotbarUpdated );
     }
 
     public void RemoveItem(ItemSlot itemSlot)
@@ -150,7 +174,7 @@ public class ItemContainer : IItemContainer
                     {
                         itemSlots[i] = new ItemSlot();
                         //OnItemsUpdated.Raise();
-                        EventManager.TriggerEvent(EventManager.Events.InventoryUpdated);                      
+                        EventManager.TriggerEvent(Events.InventoryUpdated);                      
                     }
 
                     return;
@@ -182,8 +206,11 @@ public class ItemContainer : IItemContainer
                     itemSlots[indexOne] = new ItemSlot();
 
                     //OnItemsUpdated.Raise();
-                    EventManager.TriggerEvent(EventManager.Events.InventoryUpdated);
+                    EventManager.TriggerEvent(Events.InventoryUpdated);
 
+                    //Dictionary<string, object> message = new Dictionary<string, object>{{ "firstSlotIndex", indexOne },{ "secondSlotIndex", indexTwo }};
+                    //indexOne Item is now null, so check for that index and make it equal second index
+                    EventManager.TriggerEvent(Events.HotbarUpdated, new Dictionary<string, object> { { "firstSlotIndex", indexOne }, { "secondSlotIndex", indexTwo }, { "merge", true } });
                     return;
                 }
             }
@@ -191,7 +218,11 @@ public class ItemContainer : IItemContainer
 
         itemSlots[indexOne] = secondSlot;
         itemSlots[indexTwo] = firstSlot;
-        EventManager.TriggerEvent(EventManager.Events.InventoryUpdated);
+
+        EventManager.TriggerEvent(Events.InventoryUpdated);
+        //Both slots have swapped. loop through hotbar and update indexes
+        EventManager.TriggerEvent(Events.HotbarUpdated, new Dictionary<string, object> { { "firstSlotIndex", indexOne }, { "secondSlotIndex", indexTwo } });
+
         //OnItemsUpdated.Raise();
     }
 }

@@ -31,7 +31,7 @@ MonoBehaviour:
   itemName: califlower
   itemDescription: A robust cauliflower
   sellPrice: 2
-  maxStack: 4
+  maxStack: 3
 --- !u!1001 &745254880929448084
 PrefabInstance:
   m_ObjectHideFlags: 0
