@@ -38,14 +38,19 @@ public class InventorySlot : ItemSlotUI, IDropHandler
     {
         ItemDragHandler itemDragHandler = eventData.pointerDrag.GetComponent<ItemDragHandler>();
 
+        //Debug.Log("In OnDrop of Inventory Slot");
         if(itemDragHandler == null) { return; }
 
-        if((itemDragHandler.ItemSlotUI as InventorySlot) != null)
+        if((itemDragHandler.ItemSlotUI as InventorySlot) != null && eventData.button == PointerEventData.InputButton.Left)
         {
             inventory.ItemContainer.Swap(itemDragHandler.ItemSlotUI.SlotIndex, SlotIndex);
+        }else if(eventData.button == PointerEventData.InputButton.Right)//Split logic
+        {
+            inventory.Merge(SlotIndex);
         }
-    }
 
+
+    }
 
     public override void UpdateSlotUI(Dictionary<string, object> message)
     {
@@ -66,4 +71,6 @@ public class InventorySlot : ItemSlotUI, IDropHandler
         base.EnableSlotUI(enable);
         itemQuantityText.enabled = enable;
     }
+
+
 }

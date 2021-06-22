@@ -9,65 +9,31 @@ public class HotbarSlot : ItemSlotUI , IDropHandler
 {
     [SerializeField] private Inventory inventory = null;
     [SerializeField] private TextMeshProUGUI itemQuantityText = null;
+    [SerializeField] public TextMeshProUGUI activeSlotText = null;
     public Inventory Inventory { get => inventory; set => inventory = value; }
-    private int referenceSlotIndex = -1;
+    //private int referenceSlotIndex = -1;
     private HotbarItem slotItem = null;
-
-    //public override HotbarItem SlotItem
-    //{
-    //    get { return slotItem; }
-    //    set { slotItem = value; UpdateSlotUI(null); }
-    //}
+    private ItemSlot itemSlot;
 
     public override HotbarItem SlotItem
     {
         get { return slotItem; }
         set { slotItem = value; UpdateSlotUI(null); }
     }
-    // Switch out the HotBarItem Slotitem for an acutal ItemSlot and remove all referenceSlotIndex as we now store the reference to the inventory.
 
-    //public int ReferenceSlotIndex { get => referenceSlotIndex; set => referenceSlotIndex = value; }
+    public ItemSlot ItemSlot { get => itemSlot; set => itemSlot = value; }
 
     public void OnEnable()
     {
-        //EventManager.StartListening("InventoryUpdated", UpdateSlotUI);
+        //EventManager.StartListening("HotB", UpdateSlotUI);
         UpdateSlotUI(null);
     }
 
-    public void Start()
+    protected override void Start()
     {
-        referenceSlotIndex = -1;
+        //SlotIndex = transform.GetSiblingIndex();
+        SlotIndex = -1;
         UpdateSlotUI(null);
-    }
-
-    //internal bool AddItem(ItemSlot itemSlotWithItem, int slotIndex)
-    //{
-    //    if (!= null)
-    //    {
-
-    //    }
-    //        //if (slotItem != null) { return false; }
-
-    //        SlotItem = itemSlotWithItem.item;
-    //    referenceSlotIndex = slotIndex;
-    //    //SlotIndex = slotIndex;
-
-    //    return true;
-
-    //}
-
-    //internal bool AddItem(HotbarItem itemToAdd)
-    //{
-    //    //if(slotItem != null) { return false; }
-
-    //    SlotItem = itemToAdd;
-    //    return true;
-    //}
-
-    public void UseSlot(int index)
-    {
-        if(index != SlotIndex) { return; }
-        //Use Item
     }
 
     public override void OnDrop(PointerEventData eventData)
@@ -78,21 +44,64 @@ public class HotbarSlot : ItemSlotUI , IDropHandler
         InventorySlot inventorySlot = itemDragHandler.ItemSlotUI as InventorySlot;
         if (inventorySlot != null)
         {
-            SlotItem = inventorySlot.ItemSlot.item;
-            //SlotIndex = inventorySlot.SlotIndex;
-            referenceSlotIndex = inventorySlot.SlotIndex;
+            SlotItem = inventorySlot.SlotItem;
+            ItemSlot = inventorySlot.ItemSlot;
+            SlotIndex = inventorySlot.SlotIndex;
+            UpdateSlotUI(null);
         }
+        HotbarSlot hotbarSlot2 = itemDragHandler.ItemSlotUI as HotbarSlot;
+        if (eventData.button == PointerEventData.InputButton.Left && hotbarSlot2 != null)
+        {
+            ItemSlot hotbarItemSlot1 = ItemSlot;
+            int itemSlot1Index = SlotIndex;
 
-        //If dropped onto another hotbar slot
-        HotbarSlot hotBarSlot = itemDragHandler.ItemSlotUI as HotbarSlot;
-        if (hotBarSlot != null)
-        {           
-            HotbarItem oldItem = SlotItem;
-            SlotItem = hotBarSlot.SlotItem;
-            //referenceSlotIndex = hotBarSlot.referenceSlotIndex;
-            hotBarSlot.SlotItem = oldItem;
-            return;
+            //If this slot was empty just replace it and cleanup the other one          
+            if(ItemSlot.quantity == 0)
+            {
+                SlotItem = hotbarSlot2.SlotItem;
+                ItemSlot = hotbarSlot2.ItemSlot;
+                SlotIndex = hotbarSlot2.SlotIndex;
+
+                //reset hotbar slot that was dropped
+                hotbarSlot2.SlotItem = null;
+                hotbarSlot2.ItemSlot = new ItemSlot();
+                hotbarSlot2.SlotIndex = -1;
+
+            }
+            else {
+                //Set this slot to the slot that was dropped on it
+                SlotItem = hotbarSlot2.SlotItem;
+                ItemSlot = hotbarSlot2.ItemSlot;
+                SlotIndex = hotbarSlot2.SlotIndex;
+
+                hotbarSlot2.SlotItem = SlotItem;
+                hotbarSlot2.ItemSlot = ItemSlot;
+                hotbarSlot2.SlotIndex = itemSlot1Index;
+            }
+
+            UpdateSlotUI(null);
         }
+        //If dropped onto another hotbar slot
+        //HotbarSlot hotbarSlot2 = itemDragHandler.ItemSlotUI as HotbarSlot;
+        //if (hotbarSlot2 != null)
+        //{
+        //    //Swap items and itemslots
+        //    //ItemSlot hotbarItemSlot1 = ItemSlot;
+        //    //ItemSlot itemslot2 = hotbarSlot2.ItemSlot;
+
+        //    int itemSlot1Index = hotbarSlot2.SlotIndex;
+
+        //    SlotItem = hotbarSlot2.SlotItem;
+        //    ItemSlot = hotbarSlot2.ItemSlot;
+        //    SlotIndex = hotbarSlot2.SlotIndex;
+
+        //    hotbarSlot2.SlotItem = ItemSlot.item;
+        //    hotbarSlot2.ItemSlot = ItemSlot;
+        //    hotbarSlot2.SlotIndex = itemSlot1Index;
+
+        //    UpdateSlotUI(null);
+        //    return;
+        //}
 
 
     }
@@ -106,14 +115,7 @@ public class HotbarSlot : ItemSlotUI , IDropHandler
         }
         itemIconImage.sprite = SlotItem.Icon;
         EnableSlotUI(true);
-
-        //Set new index for connection to inventory
-        //SlotIndex = SlotItem.;
-        
-        if(referenceSlotIndex != -1)
-        {
-            SetItemQuantityUI();
-        }
+        SetItemQuantityUI(); //itemIconImage.sprite = ItemSlot.item.Icon;
     }
 
 
@@ -122,11 +124,11 @@ public class HotbarSlot : ItemSlotUI , IDropHandler
     {
         if(SlotItem is InventoryItem inventoryItem)
         {
-            var referencedSlot = inventory.ItemContainer.GetSlotByIndex(referenceSlotIndex);
-            if (referencedSlot.item != null)
+            //var referencedSlot = inventory.ItemContainer.GetSlotByIndex(referenceSlotIndex);
+            if (itemSlot.item != null)
             {
                 //int quantityCount = inventory.ItemContainer.GetTotalQuantity(inventoryItem);
-                int quantityCount = referencedSlot.quantity;
+                int quantityCount = itemSlot.quantity;
                 itemQuantityText.text = quantityCount > 1 ? quantityCount.ToString() : "";
             }
             else

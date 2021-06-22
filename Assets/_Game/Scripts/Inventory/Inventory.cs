@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 
 //[CreateAssetMenu(fileName = "New Inventory", menuName = "Items/Inventory")]
 public class Inventory : MonoBehaviour
@@ -10,75 +11,148 @@ public class Inventory : MonoBehaviour
     //private readonly UnityEvent onInventoryItemsUpdated = null;
     //public GameEvent inventoryUpdated;
 
-    public ItemContainer ItemContainer { get; } = new ItemContainer(24);
+    public ItemContainer ItemContainer { get; } = new ItemContainer(5);
     [SerializeField] private Transform inventoryLocation;
     [SerializeField] private GameObject testItem1;
     [SerializeField] private GameObject testItem2;
     [SerializeField] private GameObject dropLocation;
     [SerializeField] private Hotbar hotbar;
+    [SerializeField] private GameObject splitHolder;
+    [SerializeField] private GameObject slotHolder;
 
-    //[SerializeField] private ItemSlot testItemSlot2 = new ItemSlot();
-    public void OnEnabled()
-    {
-        //Custom event system https://www.youtube.com/watch?v=iXNwWpG7EhM
+    private InventoryItemDragHandler dragHandlerOfSplitSlot;
+    private SplitDragHandler splitDragHandler;
+    private SplitHandler splitHandler;
+    private List<InventorySlot> inventorySlots;
+    private ItemSlot splitSlotItemSlotRef;
+    private int previousHotKeyIndex = -1;
 
-        //Trying to not use a custom event solution https://www.youtube.com/watch?v=LnAJ4HQGR7I
-    }
+    private int randomDebugInt = 0;
+
+    private PointerEventData splitEventData;
     private void Start()
     {
-        //EventManager.StartListening(Events.HotbarUpdated, UpdateSlotIndexes);
+        //Testing Inventory
+        TestAddCauliflowerToInventory();
+        TestAddCauliflowerToInventory();
+        TestAddCauliflowerToInventory();
+
+        //Split logic Init
+        splitDragHandler = splitHolder.GetComponentInChildren<SplitDragHandler>();
+        splitHandler = splitHolder.GetComponent<SplitHandler>();
+
+        inventorySlots = new List<InventorySlot>();
+        var temp = slotHolder.GetComponentsInChildren<InventorySlot>();
+        foreach (var slot in temp)
+        {
+            inventorySlots.Add(slot);
+        }
+
+        //Setting the default Hotbar slot pressed to 1
+        HotKeyPressed(0);
     }
 
-    public void OnDisable()
+    public void Update()
     {
-        //Custom event system https://www.youtube.com/watch?v=iXNwWpG7EhM
-        //ItemContainer.OnItemsUpdated += onInventoryItemsUpdated.Raise();
-       //ItemContainer.OnItemsUpdated -= inventoryUpdated;
-        //Trying to not use a custom event solution https://www.youtube.com/watch?v=LnAJ4HQGR7I
+        if(splitHolder.activeSelf == true)
+        {
+            splitDragHandler.transform.position = Input.mousePosition;
+        }    
     }
 
-    public void DoSomething() {
-        Debug.Log("This is what happens when the inventory is enabled and listening for ItemContainer.OnItemsUpdated");
-    }
-
-    [ContextMenu("Test Add 1")]
-    public void TestAdd()
+    //this takes the items that is currently selected in the hot by index
+    public void UseCurrentItem()
     {
-        //TODO SETUP ITEMSLOT WITH REAL ITEM
-        //ItemContainer.OnItemsUpdated = inventoryUpdated;
-
-        GameObject test1GameObject = Instantiate(testItem1, inventoryLocation);
-        InventoryItem test1Item = test1GameObject.GetComponent<InventoryItem>();
-
-        ItemSlot itemSlotWithItem = new ItemSlot(test1Item, 1);
-
-        AddItem(itemSlotWithItem);
-
-        //Needs to be added to the hot bar 
+        //If Hotkey was not set yet
+        if(previousHotKeyIndex != -1)
+        {
+            HotbarSlot slotPressed = hotbar.hotbarSlots[previousHotKeyIndex];
+            if (slotPressed.SlotIndex != -1)
+            {
+                DropItem(slotPressed);
+            }
+        }
     }
 
-    [ContextMenu("Test Add 2")]
-    public void TestAdd2()
+    //Assigns hotbar slot with the 1-9 + 0 hotkeys
+    public void HotKeyPressed(int numberPressed)
     {
-        GameObject test2GameObject = Instantiate(testItem2, inventoryLocation);
-        InventoryItem test2Item = test2GameObject.GetComponent<InventoryItem>();
+        //Remove active status from last hot bar now that new one is set
+        if (previousHotKeyIndex != numberPressed && previousHotKeyIndex != -1)
+        {
+            HotbarSlot previousSlot = hotbar.hotbarSlots[previousHotKeyIndex];
+            previousSlot.activeSlotText.text = "F";
+            previousSlot.activeSlotText.ForceMeshUpdate(true);
+        }
+        //Set Active hotbar slot to active T
+        HotbarSlot slotPressed = hotbar.hotbarSlots[numberPressed];
+        slotPressed.activeSlotText.text = "T";
+        slotPressed.activeSlotText.ForceMeshUpdate(true);
+        previousHotKeyIndex = numberPressed;
+    
+    }
 
-        ItemSlot itemSlotWithItem = new ItemSlot(test2Item, 1);
+    public void Merge(int slotIndex)
+    {
+        ItemContainer.Merge(slotIndex, splitSlotItemSlotRef);
 
-        AddItem(itemSlotWithItem);
+        if(dragHandlerOfSplitSlot != null)
+        {
+            dragHandlerOfSplitSlot.IsSplitting = false;
+        }
+        splitSlotItemSlotRef = new ItemSlot();
+
+        //reset split holder stuff
+        splitHolder.SetActive(false);
+    }
+
+    public void Split(int slotIndex , PointerEventData eventData)
+    {
+        int quantityBeforeSplit = ItemContainer.GetSlotByIndex(slotIndex).quantity;
+        ItemSlot splitSlotForMouse = ItemContainer.Split(slotIndex);
+
+        //If there is only one item and the item was not split
+        if(splitSlotForMouse.items.Count == 1 && quantityBeforeSplit == splitSlotForMouse.quantity)
+        {
+            SplitHandler splitHandler = splitHolder.GetComponent<SplitHandler>();
+            splitHandler.ItemSlot = splitSlotForMouse;
+            splitHolder.SetActive(true);
+
+            InventorySlot slotBeingSplit = inventorySlots[slotIndex];
+
+            splitHandler.ItemSlot.item.Icon = slotBeingSplit.ItemSlot.item.Icon;
+            splitHandler.SlotItem = slotBeingSplit.SlotItem;
+
+            splitSlotItemSlotRef = splitHandler.ItemSlot;
+
+            dragHandlerOfSplitSlot = slotBeingSplit.GetComponentInChildren<InventoryItemDragHandler>();
+            splitHandler.UpdateSlotUI(null);
+            ItemContainer.RemoveAt(slotIndex);
+
+        }else if(splitSlotForMouse.quantity > 0)
+        {
+            SplitHandler splitHandler = splitHolder.GetComponent<SplitHandler>();
+            splitHandler.ItemSlot = splitSlotForMouse;
+            splitHolder.SetActive(true);
+
+            InventorySlot slotBeingSplit = inventorySlots[slotIndex];
+
+            splitHandler.ItemSlot.item.Icon = slotBeingSplit.ItemSlot.item.Icon;
+            splitHandler.SlotItem = slotBeingSplit.SlotItem;
+
+            splitSlotItemSlotRef = splitHandler.ItemSlot;
+
+            dragHandlerOfSplitSlot = slotBeingSplit.GetComponentInChildren<InventoryItemDragHandler>();
+            splitHandler.UpdateSlotUI(null);
+        }   
     }
 
     //Called by Input system on pickup
     public void AddItem(InventoryItem item)
     {
         ItemSlot itemSlotWithItem = new ItemSlot(item, 1);
-        itemSlotWithItem = ItemContainer.AddItem(itemSlotWithItem);
-
-        int slotIndex = ItemContainer.GetIndexBySlot(itemSlotWithItem);
+        itemSlotWithItem = ItemContainer.AddItem(itemSlotWithItem);       
         item.transform.position = inventoryLocation.position;
-
-        //HotbarItem d = new HotbarItem();
-        hotbar.Add(itemSlotWithItem, slotIndex);
     }
 
     //Called by Input system on pickup
@@ -86,39 +160,62 @@ public class Inventory : MonoBehaviour
     {
         itemSlotWithItem = ItemContainer.AddItem(itemSlotWithItem);
         itemSlotWithItem.item.gameObject.transform.position = inventoryLocation.position;
-
-        //Somehow find out where that item has gon
-
-        int slotIndex = ItemContainer.GetIndexBySlot(itemSlotWithItem);
-
-
-        hotbar.Add(itemSlotWithItem, slotIndex);
-
     }
 
-
-
-    //Maybe replace with item dropper
     public void DropItem(InventorySlot thisSlot)
     {
-        Vector3 dropLocationPos = dropLocation.transform.position;
-        Vector3 dropLocationDirection = dropLocation.transform.forward;
-        Quaternion dropLocationRotation = dropLocation.transform.rotation;
-        float spawnDistance = 2;  
-        Vector3 dropPostion = dropLocationPos + dropLocationDirection * spawnDistance;
-
-        thisSlot.ItemSlot.item.transform.position = dropPostion;
-        //thisSlot.ItemSlot.items.transform.position = dropLocation.position;  
+        Vector3 dropPostion = CalcDropPosition();
         hotbar.Remove(thisSlot);
 
-        //foreach (InventoryItem item in thisSlot.ItemSlot.items)
-        //{
-        //    item.transform.position = dropPostion;
-        //}
+        float counter = 0;
+        foreach (InventoryItem item in thisSlot.ItemSlot.items)
+        {
+            item.transform.position = dropPostion + new Vector3(0, counter, 0);
+            counter += 0.5f;
+        }
+        ItemContainer.RemoveAt(thisSlot.SlotIndex);
     }
 
-    //Maybe replace with item dropper
+    public void DropItem(SplitHandler splitSlot)
+    {
+        Vector3 dropPostion = CalcDropPosition();
+
+        float counter = 0;
+        foreach (InventoryItem item in splitSlot.ItemSlot.items)
+        {
+            item.transform.position = dropPostion + new Vector3(0, counter, 0);
+            counter += 0.5f;
+        }
+
+        //Remove items from split holder 
+        splitSlot.ItemSlot = new ItemSlot();
+
+        if (dragHandlerOfSplitSlot != null)
+        {
+            dragHandlerOfSplitSlot.IsSplitting = false;
+        }
+        splitSlotItemSlotRef = new ItemSlot();
+
+        splitHolder.SetActive(false);
+        EventManager.TriggerEvent(Events.onMouseEndHoverTooltip);
+    }
+
     public void DropItem(HotbarSlot thisSlot)
+    {
+        Vector3 dropPostion = CalcDropPosition();
+        float counter = 0;
+        foreach (InventoryItem item in thisSlot.ItemSlot.items)
+        {
+            item.transform.position = dropPostion + new Vector3(0, counter, 0);
+            counter += 0.5f;
+        }
+
+        ItemContainer.RemoveAt(thisSlot.SlotIndex);
+        hotbar.Remove(thisSlot);
+
+    }
+
+    public Vector3 CalcDropPosition()
     {
         Vector3 dropLocationPos = dropLocation.transform.position;
         Vector3 dropLocationDirection = dropLocation.transform.forward;
@@ -126,57 +223,31 @@ public class Inventory : MonoBehaviour
         float spawnDistance = 2;
         Vector3 dropPostion = dropLocationPos + dropLocationDirection * spawnDistance;
 
-        //Get Item by slotindex
-        Debug.Log("Trying to drop items with inventory Index " + thisSlot.name);
-        //ItemSlot _itemSlot = ItemContainer.GetSlotByIndex(thisSlot.ReferenceSlotIndex);
-        //ItemContainer.RemoveItem(thisSlot.SlotItem);
-        hotbar.Remove(thisSlot);
-
-        //_itemSlot.item.transform.position = dropPostion;
-        //thisSlot.Slot.items.transform.position = dropLocation.position;  
-
-        //foreach (InventoryItem item in _itemSlot.items)
-        //{
-        //    item.transform.position = dropPostion;
-        //}
+        return dropPostion;
     }
 
-    //public void UpdateSlotIndexes(Dictionary<string, object> eventParams)
-    //{
-    //    int indexOne = (int) eventParams["firstSlotIndex"];
-    //    int indexTwo = (int) eventParams["secondSlotIndex"];
-    //    bool merge = false;
+    [ContextMenu("Test Add Carrot")]
+    public void TestAddCarrotToInventoy()
+    {
+        GameObject test1GameObject = Instantiate(testItem1, inventoryLocation);
+        InventoryItem test1Item = test1GameObject.GetComponent<InventoryItem>();
 
-    //    if(eventParams.ContainsKey("merge"))
-    //    {
-    //        merge = true;
-    //    }
+        ItemSlot itemSlotWithItem = new ItemSlot(test1Item, 1);
 
-    //    //If you are merging you only need to check for the first slot
-    //    foreach (HotbarSlot hotbarSlot in hotbar.hotbarSlots)
-    //    {
-    //        if (merge)
-    //        {
-    //            if (hotbarSlot.ReferenceSlotIndex == indexOne)
-    //            {
-    //                hotbarSlot.ReferenceSlotIndex = indexTwo;
-    //            }
-    //        }
-    //        else
-    //        {
-    //            //move hotbarSlot index to equal indexTwo
-    //            if(hotbarSlot.ReferenceSlotIndex == indexOne)
-    //            {
-    //                hotbarSlot.ReferenceSlotIndex = indexTwo;
-    //            }
-    //            else if (hotbarSlot.ReferenceSlotIndex == indexTwo)
-    //            {
-    //                hotbarSlot.ReferenceSlotIndex = indexOne;
-    //            }
-    //        }
+        AddItem(itemSlotWithItem);
+    }
 
-    //    }
+    [ContextMenu("Test Add Cauliflower")]
+    public void TestAddCauliflowerToInventory()
+    {
+        randomDebugInt += 5;
+        Vector3 spawnPos = inventoryLocation.position + new Vector3(0, 0, randomDebugInt);
+        GameObject test2GameObject = Instantiate(testItem2, spawnPos, Quaternion.identity);
+        InventoryItem test2Item = test2GameObject.GetComponent<InventoryItem>();
 
-    //}
+        ItemSlot itemSlotWithItem = new ItemSlot(test2Item, 1);
+
+        AddItem(itemSlotWithItem);
+    }
 
 }

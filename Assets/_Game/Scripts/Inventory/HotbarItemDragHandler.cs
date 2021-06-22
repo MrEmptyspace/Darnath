@@ -14,7 +14,6 @@ public class HotbarItemDragHandler : ItemDragHandler
             base.OnPointerUp(eventData);
             if(eventData.hovered.Count == 0)
             {
-                //(ItemSlotUI as HotbarSlot).SlotItem = null;
 
                 if (ItemSlotUI != null)
                 {
@@ -25,11 +24,6 @@ public class HotbarItemDragHandler : ItemDragHandler
                     if (inventory != null)
                     {
                         inventory.DropItem(thisSlot);
-                        //inventory.ItemContainer.RemoveAt(thisSlot.ReferenceSlotIndex);
-
-                        //inventory.ItemContainer.RemoveItem(thisSlot);
-
-                        //thisSlot.ReferenceSlotIndex = -1;
                     }
                 }
             }

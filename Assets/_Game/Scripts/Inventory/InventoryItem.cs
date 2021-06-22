@@ -62,4 +62,21 @@ public class InventoryItem : HotbarItem
         Debug.Log("Need to implement creating image for inventory");
     }
 
+    public override bool Equals(object obj)
+    {
+        var item = obj as InventoryItem;
+
+        if (item == null) return false;
+        if (itemName != item.itemName) return false;
+        if (itemDescription != item.itemDescription) return false;
+        //if (EqualityComparer<Dictionary<string, string>>.Default.Equals(itemProps, item.itemProps)) return false;
+        if (sellPrice != item.sellPrice) return false;
+        if (maxStack != item.maxStack) return false;
+        if (SellPrice != item.SellPrice) return false;
+        if (MaxStack != item.MaxStack) return false;
+        if (ColouredName != item.ColouredName) return false;
+        ////base.Equals(obj) &&
+
+        return true;
+    }
 }

@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public abstract class ItemSlotUI : MonoBehaviour, IDropHandler
 {
-    [SerializeField] protected Image itemIconImage = null;
+    [SerializeField] public Image itemIconImage = null;
 
     public int SlotIndex { get; set; }
 

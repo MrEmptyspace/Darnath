@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -28,6 +29,7 @@ public class InputManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         movementEnabled = true;
         layerMask = LayerMask.GetMask("Item");
+        currentMouseLook.x = -70f;
     }
 
 
@@ -49,6 +51,21 @@ public class InputManager : MonoBehaviour
             velocity.y = Input.GetAxis("Vertical") * speed * Time.deltaTime;
             velocity.x = Input.GetAxis("Horizontal") * speed * Time.deltaTime;
             character.Translate(velocity.x, 0, velocity.y);
+
+            for (int i = 0; i < keyCodes.Length; i++)
+            {
+                if (Input.GetKeyDown(keyCodes[i]))
+                {
+                    int numberPressed = i;// + 1;
+                    Debug.Log(numberPressed);
+                    GameManager.instance.SYS_Player_Inv.HotKeyPressed(numberPressed);
+                }
+            }
+
+            if (Input.GetKey(KeyCode.E))
+            {
+                GameManager.instance.SYS_Player_Inv.UseCurrentItem();
+            }
         }
         else if (!movementEnabled)
         {
@@ -61,49 +78,68 @@ public class InputManager : MonoBehaviour
             movementEnabled = !movementEnabled;
             Cursor.lockState = CursorLockMode.None;
         }
+
+
     }
 
 
     void FixedUpdate()
     {
-
-        if (Input.GetKey(KeyCode.F))
+        //If the inventory menu is open
+        if (!GameManager.instance.SYS_Player_Inv.gameObject.activeInHierarchy)
         {
-            //Detect if the Player is looking at any item
-            RaycastHit hit;
-            Ray ray = cam.ViewportPointToRay(new Vector3(0.5F, 0.5F, 0));
-            Debug.DrawRay(ray.origin, ray.direction, Color.red);
-
-            if (Physics.Raycast(ray, out hit, 2.5f, layerMask))
+            if (Input.GetKey(KeyCode.F))
             {
-                Transform objectHit = hit.transform;
-                currentLookingAt = hit.transform.gameObject;
-                //Debug.Log("Looking at = " + objectHit.name);
-                if (objectHit.CompareTag("Item"))
-                {
-                    if ((currentLookingAt == null || objectHit.GetComponent<InventoryItem>() != null))
-                    {
-                        InventoryItem itemTmp = objectHit.GetComponent<InventoryItem>();
-                        //currentLookingAt = itemTmp;
-                        GameManager.instance.SYS_Player_Inv.AddItem(itemTmp);
+                //Detect if the Player is looking at any item
+                PickupItem();
+                               
+            }
+        }
+    }
 
-                        /*if (textures.ContainsKey(itemTmp.name))
-                        {
-                            currentLookingAt = itemTmp;
-                            currentLookingAtIndex = i;
-                        }*/
-                       
-                    }
-                }
-                else
+    private KeyCode[] keyCodes = {
+         KeyCode.Alpha1,
+         KeyCode.Alpha2,
+         KeyCode.Alpha3,
+         KeyCode.Alpha4,
+         KeyCode.Alpha5,
+         KeyCode.Alpha6,
+         KeyCode.Alpha7,
+         KeyCode.Alpha8,
+         KeyCode.Alpha9,
+         KeyCode.Alpha0,
+     };
+ 
+
+    private void PickupItem()
+    {
+        RaycastHit hit;
+        Ray ray = cam.ViewportPointToRay(new Vector3(0.5F, 0.5F, 0));
+        Debug.DrawRay(ray.origin, ray.direction, Color.red);
+
+        if (Physics.Raycast(ray, out hit, 2.5f, layerMask))
+        {
+            Transform objectHit = hit.transform;
+            currentLookingAt = hit.transform.gameObject;
+            //Debug.Log("Looking at = " + objectHit.name);
+            if (objectHit.CompareTag("Item"))
+            {
+                if ((currentLookingAt == null || objectHit.GetComponent<InventoryItem>() != null))
                 {
-                    currentLookingAt = null;
+                    InventoryItem itemTmp = objectHit.GetComponent<InventoryItem>();
+                    //currentLookingAt = itemTmp;
+                    GameManager.instance.SYS_Player_Inv.AddItem(itemTmp);
+
                 }
             }
             else
             {
                 currentLookingAt = null;
             }
+        }
+        else
+        {
+            currentLookingAt = null;
         }
     }
 }

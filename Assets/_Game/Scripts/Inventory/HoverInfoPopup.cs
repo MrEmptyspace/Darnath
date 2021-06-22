@@ -60,9 +60,13 @@ public class HoverInfoPopup : MonoBehaviour
 
     public void DisplayInfo(Dictionary<string, object> message = null)
     {
-        HotbarItem infoItem = (HotbarItem) message["infoItem"];
-        //Dictionary<string, object> message
-           
+        if(message == null) { return; }
+        if (!message.ContainsKey("infoItem") || (HotbarItem)message["infoItem"] == null)
+        {
+            return;
+        }
+        HotbarItem infoItem = (HotbarItem)message["infoItem"];
+
         StringBuilder builder = new StringBuilder();
 
         builder.Append("<size=35>").Append(infoItem.ColouredName).Append("</size>\n");

@@ -5,121 +5,123 @@ using UnityEngine;
 
 public class Hotbar: MonoBehaviour
 {
-    [SerializeField] public HotbarSlot[] hotbarSlots = new HotbarSlot[10];
+    [SerializeField] public HotbarSlot[] hotbarSlots = new HotbarSlot[9];
 
     private void Start()
     {
-         hotbarSlots = GetComponentsInChildren<HotbarSlot>();
+        hotbarSlots = GetComponentsInChildren<HotbarSlot>();
+
+        EventManager.StartListening(Events.HotbarUpdated, UpdateHotbarSlots);
     }
 
-    //Shift click something to hotbar, put anywhere
-    public void Add(HotbarItem itemToAdd)
+    private void UpdateHotbarSlots(Dictionary<string, object> message)
     {
-        foreach (HotbarSlot hotbarSlot in hotbarSlots)
+        //Merge what happens when two slots get merged from the inventory that are in the hotbar
+        int firstSlotIndex = -1;
+        int secondSlotIndex = -1;
+        bool merge;
+        if (message != null && message.ContainsKey("firstSlotIndex"))
         {
-            //if (hotbarSlot.AddItem(itemToAdd))
-            //{
-             //   return;
-            //}
+            firstSlotIndex = (int)message["firstSlotIndex"];
+            //Debug.Log("firstSlotIndex = " + firstSlotIndex);
+        }
+        if (message != null && message.ContainsKey("secondSlotIndex"))
+        {
+            secondSlotIndex = (int)message["secondSlotIndex"];
+            //Debug.Log("secondSlotIndex = " + secondSlotIndex);
+        }
+        if (message != null && message.ContainsKey("merge"))
+        {
+            merge = (bool)message["merge"];
+            //Debug.Log("merge = " + merge);
+        }
+
+        if(firstSlotIndex != -1)
+        {
+            foreach (HotbarSlot hotbarSlot in hotbarSlots)
+            {
+                if (hotbarSlot.SlotIndex == firstSlotIndex)
+                {
+                    //return;
+                    hotbarSlot.ItemSlot = hotbarSlot.Inventory.ItemContainer.GetSlotByIndex(firstSlotIndex);
+                    hotbarSlot.UpdateSlotUI(null);
+                }
+            }
         }
     }
 
-    internal void Add(ItemSlot itemSlotWithItem, int slotIndex)
+    public void AddItemSlotToHotbar(ItemSlot itemSlot)
     {
-        bool added = false;
-
-        //foreach (HotbarSlot hotbarSlot in hotbarSlots)
-        //{
-        //    if(hotbarSlot.SlotItem != null)
-        //    {
-        //        if (hotbarSlot.SlotItem == itemSlotWithItem.item)
-        //        {
-        //            hotbarSlot.SlotItem = itemSlotWithItem.item;
-        //            hotbarSlot.ReferenceSlotIndex = slotIndex;
-        //            hotbarSlot.UpdateSlotUI(null);//Pull the new quantity using the reference link;
-        //            if (hotbarSlot)
-        //            {
-
-        //            }
-        //            //break;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        hotbarSlot.SlotItem = itemSlotWithItem.item;
-        //        hotbarSlot.ReferenceSlotIndex = slotIndex;
-        //        hotbarSlot.UpdateSlotUI(null);
-        //        break;
-        //    }
-
-        //    //Loop through each slot and check if the item im adding has the index of any in the hot bar slot
-        //    ////If it does match 
-        //    ////if I find the same item in my hot bar, update the UI
-        //    if (hotbarSlot.ReferenceSlotIndex == slotIndex)
-        //    {
-        //        hotbarSlot.SlotItem = itemSlotWithItem.item;
-        //        hotbarSlot.ReferenceSlotIndex = slotIndex;
-        //        hotbarSlot.UpdateSlotUI(null);//Pull the new quantity using the reference link;
-        //        break;
-        //    }
-        //    else
-        //    {
-        //        //Add to the nearest null hotbar
-
-        //    }
-            //else 
-            //{
-            //    //if (hotbarSlot.SlotItem != null) { break; }
-            //    hotbarSlot.SlotItem = itemSlotWithItem.item;
-            //    hotbarSlot.ReferenceSlotIndex = slotIndex;
-            //}
-
-            ////If hot bar does not have and Item in it.
-            //if (hotbarSlot.ReferenceSlotIndex == slotIndex)
-            //{
-            //    //Update the ui of that slot to show new quantity
-            //    if(hotbarSlot.SlotItem == null)
-            //    {
-            //        hotbarSlot.SlotItem = itemSlotWithItem.item;
-            //        hotbarSlot.ReferenceSlotIndex = slotIndex;
-            //    }
-            //    hotbarSlot.UpdateSlotUI(null);
-            //    break;
-            //}
-            //else 
-            //{
-            //    //if (hotbarSlot.SlotItem != null) { break; }
-            //    hotbarSlot.SlotItem = itemSlotWithItem.item;
-            //    hotbarSlot.ReferenceSlotIndex = slotIndex;
-            //}
-
-            //if (hotbarSlot.AddItem(itemSlotWithItem))
-            //{
-            //    return;
-            //}
-        //}
+        foreach (HotbarSlot hotbarSlot in hotbarSlots)
+        {
+            if (Add(itemSlot))
+            {
+               return;
+            }
+        }
     }
 
+    internal bool Add(ItemSlot itemSlotWithItem)
+    {
+        bool added = false;
+        foreach (HotbarSlot hotbarSlot in hotbarSlots)
+        {
+            if (hotbarSlot.SlotItem != null)
+            {
+                if (hotbarSlot.ItemSlot.EqualsWithoutQuantity(itemSlotWithItem))
+                {
+                    //If the slot is full continue to the next empty slot
+                    if(hotbarSlot.ItemSlot.quantity >= hotbarSlot.ItemSlot.item.MaxStack)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        hotbarSlot.SlotItem = itemSlotWithItem.item;
+                        hotbarSlot.ItemSlot = itemSlotWithItem;
+                        hotbarSlot.UpdateSlotUI(null);
+                        added = true;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                hotbarSlot.SlotItem = itemSlotWithItem.item;
+                hotbarSlot.ItemSlot = itemSlotWithItem;
+                hotbarSlot.UpdateSlotUI(null);
+                added = true;
+                break;
+            }
+        }
+
+        return added;
+    }
     public void Remove(HotbarSlot thisSlot)
     {
-        foreach (var slot in hotbarSlots)
+        foreach (HotbarSlot slot in hotbarSlots)
         {
-           if(slot.SlotItem == thisSlot.SlotItem)
+            if (slot.SlotIndex == thisSlot.SlotIndex)
             {
+                slot.SlotIndex = -1;
                 slot.SlotItem = null;
+                slot.ItemSlot = new ItemSlot();
                 slot.UpdateSlotUI(null);
+                break;
             }
         }
     }
 
     internal void Remove(InventorySlot thisSlot)
     {
-        foreach (var slot in hotbarSlots)
+        foreach (HotbarSlot slot in hotbarSlots)
         {
-            if (slot.SlotItem == thisSlot.SlotItem)
+            if (slot.ItemSlot == thisSlot.ItemSlot)
             {
                 slot.SlotItem = null;
+                slot.ItemSlot = new ItemSlot();
                 slot.UpdateSlotUI(null);
+                break;
             }
         }
     }

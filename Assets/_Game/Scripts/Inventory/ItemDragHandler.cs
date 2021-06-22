@@ -7,8 +7,8 @@ public class ItemDragHandler : MonoBehaviour, IPointerDownHandler, IDragHandler,
 {
     [SerializeField] protected ItemSlotUI itemSlotUI = null;
 
-    private CanvasGroup canvasGroup = null;
-    private Transform originalParent = null;
+    public CanvasGroup canvasGroup = null;
+    public Transform originalParent = null;
     private bool isHovering = false;
 
     public ItemSlotUI ItemSlotUI => itemSlotUI;
@@ -40,14 +40,6 @@ public class ItemDragHandler : MonoBehaviour, IPointerDownHandler, IDragHandler,
         }
     }
 
-    public virtual void OnDrag(PointerEventData eventData)
-    {
-        if (eventData.button == PointerEventData.InputButton.Left)
-        {
-            transform.position = Input.mousePosition;
-        }
-    }
-
     public virtual void OnPointerUp(PointerEventData eventData)
     {
         if (eventData.button == PointerEventData.InputButton.Left)
@@ -55,6 +47,14 @@ public class ItemDragHandler : MonoBehaviour, IPointerDownHandler, IDragHandler,
             transform.SetParent(originalParent);
             transform.localPosition = Vector3.zero;
             canvasGroup.blocksRaycasts = true;
+        }
+    }
+
+    public virtual void OnDrag(PointerEventData eventData)
+    {
+        if (eventData.button == PointerEventData.InputButton.Left)
+        {
+            transform.position = Input.mousePosition;
         }
     }
 
