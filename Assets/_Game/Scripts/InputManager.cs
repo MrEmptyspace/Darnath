@@ -20,6 +20,9 @@ public class InputManager : MonoBehaviour
     GameObject currentLookingAt;
     int layerMask;
 
+    private GameManager gameManager;
+
+
     void Reset()
     {
     }
@@ -52,19 +55,19 @@ public class InputManager : MonoBehaviour
             velocity.x = Input.GetAxis("Horizontal") * speed * Time.deltaTime;
             character.Translate(velocity.x, 0, velocity.y);
 
-            for (int i = 0; i < keyCodes.Length; i++)
-            {
-                if (Input.GetKeyDown(keyCodes[i]))
-                {
-                    int numberPressed = i;// + 1;
-                    Debug.Log(numberPressed);
-                    GameManager.instance.SYS_Player_Inv.HotKeyPressed(numberPressed);
-                }
-            }
+            // for (int i = 0; i < keyCodes.Length; i++)
+            // {
+            //     if (Input.GetKeyDown(keyCodes[i]))
+            //     {
+            //         int numberPressed = i;// + 1;
+            //         Debug.Log(numberPressed);
+            //         //GameManager.instance.SYS_Player_Inv.HotKeyPressed(numberPressed);
+            //     }
+            // }
 
             if (Input.GetKey(KeyCode.E))
             {
-                GameManager.instance.SYS_Player_Inv.UseCurrentItem();
+                //GameManager.instance.SYS_Player_Inv.UseCurrentItem();
             }
         }
         else if (!movementEnabled)
@@ -79,22 +82,21 @@ public class InputManager : MonoBehaviour
             Cursor.lockState = CursorLockMode.None;
         }
 
-
     }
 
 
     void FixedUpdate()
     {
         //If the inventory menu is open
-        if (!GameManager.instance.SYS_Player_Inv.gameObject.activeInHierarchy)
-        {
-            if (Input.GetKey(KeyCode.F))
-            {
-                //Detect if the Player is looking at any item
-                PickupItem();
+        // if (!GameManager.instance.SYS_Player_Inv.gameObject.activeInHierarchy)
+        // {
+        //     if (Input.GetKey(KeyCode.F))
+        //     {
+        //         //Detect if the Player is looking at any item
+        //         PickupItem();
                                
-            }
-        }
+        //     }
+        // }
     }
 
     private KeyCode[] keyCodes = {
@@ -121,21 +123,21 @@ public class InputManager : MonoBehaviour
         {
             Transform objectHit = hit.transform;
             currentLookingAt = hit.transform.gameObject;
-            //Debug.Log("Looking at = " + objectHit.name);
-            if (objectHit.CompareTag("Item"))
-            {
-                if ((currentLookingAt == null || objectHit.GetComponent<InventoryItem>() != null))
-                {
-                    InventoryItem itemTmp = objectHit.GetComponent<InventoryItem>();
-                    //currentLookingAt = itemTmp;
-                    GameManager.instance.SYS_Player_Inv.AddItem(itemTmp);
+            Debug.Log("Looking at = " + objectHit.name);
+            // if (objectHit.CompareTag("Item"))
+            // {
+            //     if ((currentLookingAt == null || objectHit.GetComponent<InventoryItem>() != null))
+            //     {
+            //         InventoryItem itemTmp = objectHit.GetComponent<InventoryItem>();
+            //         //currentLookingAt = itemTmp;
+            //         GameManager.instance.SYS_Player_Inv.AddItem(itemTmp);
 
-                }
-            }
-            else
-            {
-                currentLookingAt = null;
-            }
+            //     }
+            // }
+            // else
+            // {
+            //     currentLookingAt = null;
+            // }
         }
         else
         {

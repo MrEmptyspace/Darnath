@@ -19,6 +19,7 @@ public static class Utils
         catch (Exception e)
         {
             Debug.Log("Could not load Asset named :" + assetName);
+            Debug.Log(e);
         }
         return returnPrefab;
     }
@@ -36,6 +37,7 @@ public static class Utils
         catch (Exception ex)
         {
             Debug.Log("Could not load Texture named :" + assetName + " At " + "Assets/Resources/" + subFolderInResources + assetName + "." + fileType + "" + "As a " + assetType);
+            Debug.Log(ex);
             throw;
         }
         return returnPrefab;

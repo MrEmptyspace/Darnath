@@ -40,11 +40,11 @@ public class FarmManager : MonoBehaviour
             //Need to have a list of gameobjects for the farms to be attached to
             if(farmsAssigned <= FarmGameObjects.Count && FarmGameObjects.Count != 0) 
             {
-                FarmData newFarmData = JsonUtility.FromJson<FarmData>(farmData.ToString());
+                //FarmData newFarmData = JsonUtility.FromJson<FarmData>(farmData.ToString());
                 Farm newfarm = FarmGameObjects[farmsAssigned].AddComponent<Farm>();
                 farmScripts.Add(newfarm);
                 //THIS SHOULD BE READ FROM THE START POSITION OF THE FARM GAME OBJECT LIST
-                newfarm.Init(newFarmData,testFarmPosition.transform.position);
+                //newfarm.Init(newFarmData,testFarmPosition.transform.position);
                 //Farm newFarm = new Farm(newFarmData, testFarmPosition.transform.position);
                 //FarmListGlobal.Add(newFarm);
             }
@@ -78,8 +78,8 @@ public class FarmManager : MonoBehaviour
         string farmProgressList = "";
         foreach (Farm farm in farmScripts)
         {
-            farmProgressList += "Farm Name: " + farm.farmData.farmName;
-            farmProgressList +=farm.CropProgress();
+            //farmProgressList += "Farm Name: " + farm.farmData.farmName;
+            //farmProgressList +=farm.CropProgress();
         }
         return farmProgressList;
     }

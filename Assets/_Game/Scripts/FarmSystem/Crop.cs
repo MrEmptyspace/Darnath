@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -9,12 +9,32 @@ public class Crop : MonoBehaviour
 {
     public CropData cropData;
     public GameObject growingItem;
-    public bool isActivePlot = true;
-    public bool isGrowing = false;
-    public int plotNumber;
 
-    public static event Action<CropData,int> OnCropGrowth = delegate { };
-    public static event Action<CropData, int> CropCompleted = delegate { };
+    public class GrowthStage
+    {
+        public string description;
+        public Color visualChange;
+    }
+
+    [Serializable]
+    public class CropData
+    {
+        public string cropName;
+
+        public string cropID;
+        public int growthTime;
+
+        public GrowthStage[] growthStages;
+
+        public bool isGrown;
+
+        public int currStageIndex = 0;
+
+
+    }
+
+
+
     //public static event Action<Crop> CropCompletedConversionToItem = delegate { };
 
     /*public void DestroyGameObject()
@@ -22,47 +42,72 @@ public class Crop : MonoBehaviour
         Destroy(growingItem);
     }*/
 
-    public void Init(CropData cropData, int plotNumber)
-    {
-        this.cropData = cropData;
-        this.plotNumber = plotNumber;
-    }
+    // public void Init(CropData cropData, int plotNumber)
+    // {
+    //     this.cropData = cropData;
+    //     this.plotNumber = plotNumber;
+    // }
 
-    public IEnumerator Grow(int growForSeconds,int untilSeconds)
-    {
-        isGrowing = true;
-        while (growForSeconds != untilSeconds)
-        {
-            cropData.growthProgress += 1;
-            growForSeconds += 1;
-            OnCropGrowth(cropData,plotNumber);
-            yield return new WaitForSeconds(1);
-        }
-        StopGrowing();  
-    }
+    //     public void PlantCrop(CropData cropData, int plotNumber)
+    // {
+    //     this.cropData = cropData;
+    //     this.plotNumber = plotNumber;
+    // }
+
+    // public IEnumerator Grow(int growForSeconds,int untilSeconds)
+    // {
+    //     isGrowing = true;
+    //     while (growForSeconds != untilSeconds)
+    //     {
+    //         cropData.growthProgress += 1;
+    //         growForSeconds += 1;
+    //         OnCropGrowth(cropData,plotNumber);
+    //         yield return new WaitForSeconds(1);
+    //     }
+    //     StopGrowing();  
+    // }
+
+    // public void StartGrowing()
+    // {
+    //     //int timeToFinish = cropData.timeToGrow - ;
+
+    //     if (cropData.growthProgress <= cropData.timeToGrow)
+    //     {
+    //         StartCoroutine(Grow(cropData.growthProgress, cropData.timeToGrow));
+    //     }
+    //     else
+    //     {
+    //         Debug.Log("Crop is already done");
+    //         Debug.Log("Name : " + cropData.cropName + " | Growth : " + cropData.growthProgress);
+    //     }  
+    // }
 
     public void StartGrowing()
     {
-        //int timeToFinish = cropData.timeToGrow - ;
+        growingItem = transform.gameObject;
 
-        if (cropData.growthProgress <= cropData.timeToGrow)
+        Farm.instance.Grow(cropData.growthTime, cropData.growthStages.Length, cropData.cropID);
+        EventManager.StartListening(Events.OnStageGrow, OnGrowEvent);
+    }
+
+    private void OnGrowEvent(Dictionary<string, object> eventData)
+    {
+        if ((String)eventData["PlantID"] != cropData.cropID) return;
+
+        // Unsubscribe
+        if (cropData.currStageIndex >= cropData.growthStages.Length)
         {
-            StartCoroutine(Grow(cropData.growthProgress, cropData.timeToGrow));
+            EventManager.TriggerEvent(Events.GrowthCompleted, new Dictionary<string, object> { { "PlantID", cropData.cropID } });
+            cropData.isGrown = true;
+            EventManager.StopListening(Events.OnStageGrow, OnGrowEvent);
         }
         else
         {
-            Debug.Log("Crop is already done");
-            Debug.Log("Name : " + cropData.cropName + " | Growth : " + cropData.growthProgress);
-        }  
+            GrowthStage nextStage = cropData.growthStages[cropData.currStageIndex];
+            growingItem.GetComponent<Renderer>().material.color = cropData.growthStages[cropData.currStageIndex].visualChange;
+            Debug.Log("PlantID = " + cropData.cropID + " Stage = " + cropData.growthStages[cropData.currStageIndex].description + " Change = " + cropData.growthStages[cropData.currStageIndex].visualChange);
+            cropData.currStageIndex++;
+            
+        }
     }
-
-    public void StopGrowing()
-    {
-        CropCompleted(cropData, plotNumber);
-        //CropCompletedConversionToItem(this);
-        isGrowing = false;
-        transform.localScale += new Vector3(4, 4, 4);
-        StopCoroutine("Grow");
-    }
-
 }

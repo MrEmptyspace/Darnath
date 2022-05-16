@@ -47,7 +47,6 @@ public class EventManager : MonoBehaviour
         {
             thisEvent += listener;
             instance.eventDictionary[eventName] = thisEvent;
-
         }
         else
         {
@@ -76,6 +75,18 @@ public class EventManager : MonoBehaviour
             thisEvent.Invoke(message);
         }
     }
+
+    public static void TriggerEvent(string eventName, string value)
+    {
+        Dictionary<string, object> message = new Dictionary<string, object>();
+        message.Add(eventName, value);
+        Action<Dictionary<string, object>> thisEvent = null;
+        if (instance.eventDictionary.TryGetValue(eventName, out thisEvent))
+        {
+            thisEvent.Invoke(message);
+        }
+    }
+
 
     public static void TriggerEvent(string eventName)
     {

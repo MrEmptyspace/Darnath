@@ -21,6 +21,9 @@ public class GameManager : MonoBehaviour
 
     }
 
+
+    
+
     public InputManager SYS_Input;
     public Inventory SYS_Player_Inv;
 
