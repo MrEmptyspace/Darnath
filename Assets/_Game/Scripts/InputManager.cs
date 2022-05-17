@@ -22,8 +22,11 @@ public class InputManager : MonoBehaviour
 
     public float pickUpRange = 5;
     public float moveForce = 250;
+    public float throwForce = 5;
     public Transform holdParent;
     public GameObject heldObj;
+    public GameObject throwingMarker;
+    private GameObject lastHeldObj;
 
     private GameManager gameManager;
 
@@ -72,62 +75,49 @@ public class InputManager : MonoBehaviour
             // }
 
 
-
             if (Input.GetKey(KeyCode.E))
             {
-                Debug.DrawRay(character.transform.position, character.transform.TransformDirection(Vector3.forward).normalized * pickUpRange, Color.red, 10f);
-                RaycastHit hit;
-                Ray ray = cam.ViewportPointToRay(new Vector3(0.5F, 0.5F, 0));
-                Debug.DrawRay(ray.origin, ray.direction * 10f, Color.blue, 10f);
-
-                if (Physics.Raycast(ray, out hit, 2.5f, layerMask))
-                {
-                    Transform objectHit = hit.transform;
-                    currentLookingAt = hit.transform.gameObject;
-                    Debug.Log("Looking at = " + objectHit.name);
-                    // if (objectHit.CompareTag("Item"))
-                    // {
-                    //     if ((currentLookingAt == null || objectHit.GetComponent<InventoryItem>() != null))
-                    //     {
-                    //         InventoryItem itemTmp = objectHit.GetComponent<InventoryItem>();
-                    //         //currentLookingAt = itemTmp;
-                    //         GameManager.instance.SYS_Player_Inv.AddItem(itemTmp);
-
-                    //     }
-                    // }
-                    // else
-                    // {
-                    //     currentLookingAt = null;
-                    // }
-                }
+                //Debug.DrawRay(character.transform.position, character.transform.TransformDirection(Vector3.forward).normalized * pickUpRange, Color.red, 10f);
                 if (heldObj == null)
                 {
-                    RaycastHit hitInfo;
+                    RaycastHit hit;
+                    Ray ray = cam.ViewportPointToRay(new Vector3(0.5F, 0.5F, 0));
+                    Debug.DrawRay(ray.origin, ray.direction * pickUpRange, Color.blue, 60f);
 
-                    if (Physics.Raycast(character.transform.position, character.transform.TransformDirection(Vector3.forward), out hitInfo, pickUpRange, layerMask))
+                    if (Physics.Raycast(ray, out hit, pickUpRange, layerMask))
                     {
+                        Transform objectHit = hit.transform;
+                        currentLookingAt = hit.transform.gameObject;
+                        PickupObject(hit.transform.gameObject);
 
-                        PickupObject(hitInfo.transform.gameObject);
-                        PickupItem();
-                        ePressCounter++;
                     }
 
                 }
             }
             if (Input.GetKeyDown(KeyCode.E))
             {
-                if (ePressCounter == 1)
+
+                if (ePressCounter == 1 && heldObj != null)
                 {
                     DropObject();
                     ePressCounter = 0;
                 }
+                if (heldObj != null)
+                {
+                    ePressCounter++;
+                }
+
+            }
+            if (Input.GetMouseButton(0) && heldObj != null)
+            {
+                Rigidbody heldRig = heldObj.GetComponent<Rigidbody>();
+                heldRig.AddForce(throwingMarker.transform.forward * throwForce * 10f);
+                DropObject();
             }
             if (heldObj != null)
             {
                 MoveObject();
             }
-
-
         }
         else if (!movementEnabled)
         {
@@ -148,6 +138,9 @@ public class InputManager : MonoBehaviour
         heldRig.useGravity = true;
         heldRig.drag = 1;
 
+
+
+        heldObj.GetComponent<Collider>().enabled = true;
         heldObj.transform.parent = null;
         heldObj = null;
     }
@@ -171,7 +164,12 @@ public class InputManager : MonoBehaviour
 
             objRig.transform.parent = holdParent;
             heldObj = pickObj;
-            Debug.Log("heldOBJ = pickObj" + heldObj + pickObj);
+
+            heldObj.GetComponent<Collider>().enabled = false;
+            heldObj.GetComponent<Rigidbody>().velocity = Vector3.zero;
+            heldObj.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
+            heldObj.transform.rotation = Quaternion.identity;
+
         }
     }
 
@@ -202,37 +200,4 @@ public class InputManager : MonoBehaviour
          KeyCode.Alpha9,
          KeyCode.Alpha0,
      };
-
-
-    private void PickupItem()
-    {
-        RaycastHit hit;
-        Ray ray = cam.ViewportPointToRay(new Vector3(0.5F, 0.5F, 0));
-        Debug.DrawRay(ray.origin, ray.direction, Color.blue);
-
-        if (Physics.Raycast(ray, out hit, 2.5f, layerMask))
-        {
-            Transform objectHit = hit.transform;
-            currentLookingAt = hit.transform.gameObject;
-            Debug.Log("Looking at = " + objectHit.name);
-            // if (objectHit.CompareTag("Item"))
-            // {
-            //     if ((currentLookingAt == null || objectHit.GetComponent<InventoryItem>() != null))
-            //     {
-            //         InventoryItem itemTmp = objectHit.GetComponent<InventoryItem>();
-            //         //currentLookingAt = itemTmp;
-            //         GameManager.instance.SYS_Player_Inv.AddItem(itemTmp);
-
-            //     }
-            // }
-            // else
-            // {
-            //     currentLookingAt = null;
-            // }
-        }
-        else
-        {
-            currentLookingAt = null;
-        }
-    }
 }

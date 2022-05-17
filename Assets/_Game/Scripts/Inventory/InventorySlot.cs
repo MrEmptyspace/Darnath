@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using MCEvents;
 
 public class InventorySlot : ItemSlotUI, IDropHandler
 {

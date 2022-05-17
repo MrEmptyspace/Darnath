@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using MCEvents;
 
 //[CreateAssetMenu(fileName = "New Inventory", menuName = "Items/Inventory")]
 public class Inventory : MonoBehaviour

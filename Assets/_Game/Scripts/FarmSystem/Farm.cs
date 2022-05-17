@@ -4,12 +4,18 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using System.Linq;
+using MCEvents;
 
 public class Farm : MonoBehaviour
 {
     //Constructer Init
     public List<Crop> cropsList;
+
+    public Dictionary<string, Crop> cropsLookup = new Dictionary<string, Crop>();
+    //public Dictionary<string, Crop.GrowthStage[]> cropsStagesLookup = new Dictionary<string, Crop.GrowthStage[]>();
     GameObject[,] borderedFarmPlots;
+    List<GameObject> cropSpots = new List<GameObject>();
     //public FarmData farmData;
     //public Vector3 farmPosition;
 
@@ -17,6 +23,8 @@ public class Farm : MonoBehaviour
     //public GameObject emptyPlotObject;
 
     //public event Action OnStageGrow;
+
+    public GameObject carrotPrefab;
 
     private int plantIDMarker = 0;
 
@@ -35,12 +43,43 @@ public class Farm : MonoBehaviour
 
     }
 
+    string cropIdGen(string cropName)
+    {
+        plantIDMarker++;
+        return cropName + " - " + plantIDMarker + ":" + Guid.NewGuid();
+    }
+
     private void Start()
     {
         EventManager.StartListening(Events.GrowthCompleted, CropCompleted);
 
+        foreach (Transform child in transform)
+        {
+
+            cropSpots.Add(child.gameObject);
+
+        }
+        //Inline Carrot setup
+        Crop.CropData newCropData = new Crop.CropData();
+        newCropData.cropName = "Carrot";
+        newCropData.cropID = cropIdGen(newCropData.cropName);
+        newCropData.growthStages = (new[]
+        {
+                new Crop.GrowthStage{description = "Stage 0",visualChange = Color.white},
+                new Crop.GrowthStage{description = "Stage 1",visualChange = Color.red},
+                new Crop.GrowthStage{description = "Stage 2",visualChange = Color.yellow},
+                new Crop.GrowthStage{description = "Stage 3",visualChange = Color.green}
+            });
+
+        newCropData.growthTime = 5;
+        //Crop newCrop = new Crop();
+        GameObject tempObj = Instantiate(carrotPrefab, Vector3.zero, Quaternion.identity);
+        Crop newCrop = tempObj.AddComponent<Crop>();
+        newCrop.cropData = newCropData;
+        cropsLookup.Add("carrot", newCrop);
+        //cropsStagesLookup.Add("carrot", newCrop.growthStages);
         //Find all the crops and init them
-        cropsList = new List<Crop>(FindObjectsOfType<Crop>());
+        //cropsList = new List<Crop>(FindObjectsOfType<Crop>());
 
         // foreach (Crop crop in cropsList)
         // {
@@ -57,28 +96,67 @@ public class Farm : MonoBehaviour
         // cropsList[2].cropData = CreateNewCropData();
         // cropsList[2].StartGrowing();
     }
+    int cropIndex = 0;
 
-    public Crop.CropData CreateNewCropData()
+    void OnTriggerEnter(Collider collider)
     {
-        Crop.CropData newCrop = new Crop.CropData();
-        newCrop.cropName = "Carrot";
-        newCrop.cropID = newCrop.cropName + " - " + plantIDMarker + ":" + Guid.NewGuid();
-        newCrop.growthStages = (new[]
-        {
-        new Crop.GrowthStage{description = "Stage 0",visualChange = Color.white},
-            new Crop.GrowthStage{description = "Stage 1",visualChange = Color.red},
-            new Crop.GrowthStage{description = "Stage 2",visualChange = Color.yellow},
-            new Crop.GrowthStage{description = "Stage 3",visualChange = Color.green}
-        });
 
-        newCrop.growthTime = 5;
-        plantIDMarker++;
-        return newCrop;
+        if (collider.gameObject.layer == LayerMask.NameToLayer("Item"))
+        {
+            Debug.Log("This item = " + collider.name);
+            Item cropToBeAdd = collider.transform.GetComponent<Item>();
+            //string firstFivChar = new string(cropToBeAdd.itemName.Take(5).ToArray());
+            if (cropToBeAdd.itemName.StartsWith("Seed-"))
+            {
+                //Crop newCropData = CreateNewCropData(cropToBeAdd);
+                string trimmedCropName = cropToBeAdd.itemName.Substring(5).ToLower();
+                Crop newCropData = cropsLookup[trimmedCropName].DeepCopy();
+                newCropData.cropData.cropID = cropIdGen(newCropData.cropData.cropName);
+                newCropData.gameObject.transform.position = cropSpots[cropIndex].transform.position;
+                //ConvertItemToCrop(newCropData);
+                newCropData.StartGrowing();
+                cropIndex++;
+                cropsList.Add(newCropData);
+
+                //Destroy seeds
+                Destroy(collider.gameObject);
+            }
+        }
+
+
     }
+
+    void ConvertItemToCrop(Crop newCrop)
+    {
+        //Generate prefab at crop spot positon (TODO make the crop go do the nearest spot)
+        GameObject newCropObj = Instantiate(carrotPrefab, cropSpots[0].transform.position, Quaternion.identity);
+
+        Crop newCropTemp = newCropObj.AddComponent<Crop>();
+        newCropTemp = newCrop;
+
+        //newCrop.StartGrowing()
+        cropsList.Add(newCrop);
+    }
+
+
+    // public Crop CreateNewCropData(Item cropToBeAdd)
+    // {
+    //     //TODO ADD ERROR HANDLING FOR LOOKUPS
+    //     string trimmedCropName = cropToBeAdd.itemName.Substring(5).ToLower();
+    //     Crop newCropData = cropsLookup[trimmedCropName].DeepCopy();
+    //     //Crop.CropData newCropData = cropsLookup[trimmedCropName].;
+    //     //Crop.GrowthStage[] newStages = cropsStagesLookup[trimmedCropName];
+
+
+    //     return newCropData;
+    // }
+
 
     public void CropCompleted(Dictionary<string, object> message)
     {
         Debug.Log("Crop Completed Message contents = " + message.ToString());
+
+        
     }
 
 

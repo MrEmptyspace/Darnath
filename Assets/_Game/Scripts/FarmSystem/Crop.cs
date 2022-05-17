@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using MCEvents;
 
 public class Crop : MonoBehaviour
 {
@@ -31,6 +32,35 @@ public class Crop : MonoBehaviour
         public int currStageIndex = 0;
 
 
+    }
+
+    public Crop DeepCopy()
+    {
+        //Crop sc = new Crop();
+
+        GameObject copy = Instantiate(this.gameObject,Vector3.zero,Quaternion.identity);
+        Crop sc = copy.AddComponent<Crop>();
+
+
+
+        CropData scData = new CropData();
+        GrowthStage[] scStages = new GrowthStage[this.cropData.growthStages.Length];
+        for (int i = 0; i < this.cropData.growthStages.Length; i++)
+        {
+            scStages[i] = this.cropData.growthStages[i];
+        }
+
+        scData.cropID = this.cropData.cropID;
+        scData.cropName = this.cropData.cropName;
+        scData.growthTime = this.cropData.growthTime;
+        scData.isGrown = this.cropData.isGrown;
+        scData.currStageIndex = this.cropData.currStageIndex;
+        scData.cropID = this.cropData.cropID;
+        
+        sc.cropData = scData;
+        sc.cropData.growthStages = scStages;
+
+        return sc;
     }
 
 
@@ -107,7 +137,7 @@ public class Crop : MonoBehaviour
             growingItem.GetComponent<Renderer>().material.color = cropData.growthStages[cropData.currStageIndex].visualChange;
             Debug.Log("PlantID = " + cropData.cropID + " Stage = " + cropData.growthStages[cropData.currStageIndex].description + " Change = " + cropData.growthStages[cropData.currStageIndex].visualChange);
             cropData.currStageIndex++;
-            
+
         }
     }
 }
