@@ -48,14 +48,14 @@ public class Farm : MonoBehaviour
         //     crop.StartGrowing();
         // }
 
-        cropsList[0].cropData = CreateNewCropData();
-        cropsList[0].StartGrowing();
+        // cropsList[0].cropData = CreateNewCropData();
+        // cropsList[0].StartGrowing();
 
-        cropsList[1].cropData = CreateNewCropData();
-        cropsList[1].StartGrowing();
+        // cropsList[1].cropData = CreateNewCropData();
+        // cropsList[1].StartGrowing();
 
-        cropsList[2].cropData = CreateNewCropData();
-        cropsList[2].StartGrowing();
+        // cropsList[2].cropData = CreateNewCropData();
+        // cropsList[2].StartGrowing();
     }
 
     public Crop.CropData CreateNewCropData()
