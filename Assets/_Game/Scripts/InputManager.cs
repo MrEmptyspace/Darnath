@@ -5,71 +5,91 @@ using UnityEngine;
 
 public class InputManager : MonoBehaviour
 {
+    [Header("References")]
     [SerializeField] private Transform character;
     [SerializeField] private Camera cam;
-    [SerializeField] private KeyCode toggleKey;
     [SerializeField] GameObject objectToToggle;
 
-    Vector2 currentMouseLook;
-    Vector2 appliedMouseDelta;
-    public float sensitivity = 1;
-    public float smoothing = 2;
-    public bool movementEnabled;
-    public float speed = 5;
-    Vector2 velocity;
-    GameObject currentLookingAt;
-    int layerMask;
+    [Header("Player Control")]
+    public float moveSpeed = 10;
 
-    public float pickUpRange = 5;
-      [SerializeField] 
-    public float moveForce = 250;
+    [SerializeField]
+    float jumpForce = 5f;
+
+    [SerializeField]
+    public float heldOjbMoveForce = 250;
     public float throwForce = 5;
-    public Transform holdParent;
-    public GameObject heldObj;
-    public GameObject throwingMarker;
-    private GameObject lastHeldObj;
+    public float additionalGravity = 3f;
+
+
+    bool isGrounded;
+
+    public float mouseSensitivity = 1;
+    public bool movementEnabled;
+    GameObject currentLookingAt;
+    int itemLayerMask;
 
     private GameManager gameManager;
 
 
-    //
+    float horizontalMovement;
+    float verticalMovement;
+    Vector3 moveDirection;
+    Rigidbody rb;
+
+
+    [Header("Held Object")]
+    public Transform holdParent;
+    public GameObject heldObj;
+    public GameObject throwingMarker;
+    private GameObject lastHeldObj;
+    public float pickUpRange = 5;
+
+
+    [Header("Keybinds")]
+    [SerializeField] KeyCode LeftClick = KeyCode.Mouse0;
+    [SerializeField] KeyCode interactKey = KeyCode.E;
+    [SerializeField] KeyCode jumpKey = KeyCode.Space;
+    [SerializeField] private KeyCode toggleKey;
+
     private bool GetEKey = false;
     private bool GetEKeyDown = false;
     private bool GetMouse0 = false;
 
-    float horizontalMovement;
-    float verticalMovement;
-
-    Vector3 moveDirection;
-
-    Rigidbody rb;
-
-  [SerializeField] 
-    public float rbDrag = 5;
-
-
-    void Start()
-    {
-        Cursor.lockState = CursorLockMode.Locked;
-        movementEnabled = true;
-        layerMask = LayerMask.GetMask("Item");
-        currentMouseLook.x = -70f;
-        rb = character.GetComponent<Rigidbody>();
-        rb.freezeRotation = false;
-    }
 
     int ePressCounter = 0;
 
-    float moveSpeed = 100;
     float mouseX;
     float mouseY;
     float yRotation;
     float xRotation;
     float rotationMultiplier;
+    float playerHeight = 2f;
+
+    void Start()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        movementEnabled = true;
+        itemLayerMask = LayerMask.GetMask("Item");
+        rb = character.GetComponent<Rigidbody>();
+        rb.freezeRotation = false;
+    }
+
+
     void Update()
     {
         GetPlayerInputs();
         ControlDrag();
+        isGrounded = Physics.Raycast(character.position, Vector3.down, playerHeight / 2 + 0.1f);
+        Vector3 newPosition = character.position + new Vector3(0, playerHeight / 2 + +0.1f, 0);
+        //Debug.DrawRay(newPosition,Vector3.down * (playerHeight / 2),Color.blue,5f);
+        //Debug.Log(isGrounded);
+
+        if (Input.GetKeyDown(jumpKey) && isGrounded)
+        {
+            Jump();
+        }
+
         if (movementEnabled)
         {
             cam.transform.localRotation = Quaternion.Euler(xRotation, 0, 0);
@@ -83,14 +103,6 @@ public class InputManager : MonoBehaviour
             // currentMouseLook += appliedMouseDelta;
             // currentMouseLook.y = Mathf.Clamp(currentMouseLook.y, -90, 90);
 
-            // // Rotate camera and controller.
-            // cam.transform.localRotation = Quaternion.AngleAxis(-currentMouseLook.y, Vector3.right);
-            // character.localRotation = Quaternion.AngleAxis(currentMouseLook.x, Vector3.up);
-
-            // velocity.y = Input.GetAxis("Vertical") * speed * Time.deltaTime;
-            // velocity.x = Input.GetAxis("Horizontal") * speed * Time.deltaTime;
-            // character.Translate(velocity.x, 0, velocity.y);
-
             // for (int i = 0; i < keyCodes.Length; i++)
             // {
             //     if (Input.GetKeyDown(keyCodes[i]))
@@ -101,10 +113,6 @@ public class InputManager : MonoBehaviour
             //     }
             // }
 
-
-        }
-        else if (!movementEnabled)
-        {
 
         }
 
@@ -139,13 +147,18 @@ public class InputManager : MonoBehaviour
         mouseX = Input.GetAxisRaw("Mouse X");
         mouseY = Input.GetAxisRaw("Mouse Y");
 
-        yRotation += mouseX * sensitivity * 2;
+        yRotation += mouseX * mouseSensitivity * 2;
 
-        xRotation -= mouseY * sensitivity * 2;
+        xRotation -= mouseY * mouseSensitivity * 2;
 
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
     }
+    private void Jump()
+    {
+        rb.AddForce(character.up * jumpForce, ForceMode.Impulse);
+    }
+
     private void FixedUpdate()
     {
         MovePlayer();
@@ -158,25 +171,28 @@ public class InputManager : MonoBehaviour
             Ray ray = cam.ViewportPointToRay(new Vector3(0.5F, 0.5F, 0));
             Debug.DrawRay(ray.origin, ray.direction * pickUpRange, Color.blue, 60f);
 
-            if (Physics.Raycast(ray, out hit, pickUpRange, layerMask))
+            if (Physics.Raycast(ray, out hit, pickUpRange, itemLayerMask))
             {
                 Transform objectHit = hit.transform;
                 currentLookingAt = hit.transform.gameObject;
                 PickupObject(hit.transform.gameObject);
+
             }
             GetEKey = false;
         }
         if (GetEKeyDown)//Pressed
         {
+
             if (ePressCounter == 1 && heldObj != null)
             {
                 DropObject();
                 ePressCounter = 0;
             }
-            if (heldObj != null)
+            else if (heldObj != null)
             {
                 ePressCounter++;
             }
+
             GetEKeyDown = false;
         }
         if (GetMouse0 && heldObj != null)
@@ -207,12 +223,14 @@ public class InputManager : MonoBehaviour
 
     void MovePlayer()
     {
+        Debug.Log("Move Direction Normalized = " + moveDirection.normalized + " | move speed =" + moveSpeed);
         rb.AddForce(moveDirection.normalized * moveSpeed, ForceMode.Acceleration);
+        rb.AddForce(Vector3.down * additionalGravity * rb.mass);
     }
 
     void ControlDrag()
     {
-        rb.drag = rbDrag;
+        //rb.drag = rbDrag;
     }
 
     void MoveObject()
@@ -227,15 +245,15 @@ public class InputManager : MonoBehaviour
         if (distance > 0.1f)
         {
             Debug.DrawRay(heldObj.gameObject.transform.position, moveDir, Color.yellow, 30f);
-            heldObj.GetComponent<Rigidbody>().AddForce(moveDir * moveForce);
+            heldObj.GetComponent<Rigidbody>().AddForce(moveDir * heldOjbMoveForce);
         }
         else if (distance < 0.099f)
         {
             //heldObj.gameObject.transform.position = holdParent.position;
-            heldObj.gameObject.transform.position = Vector3.Lerp(heldRig.position,holdParent.position,0.5f);
+            heldObj.gameObject.transform.position = Vector3.Lerp(heldRig.position, holdParent.position, 0.5f);
         }
 
-        
+
         Quaternion newRotation = Quaternion.LookRotation(cam.transform.forward);
         heldObj.gameObject.transform.rotation = newRotation;
     }
@@ -246,28 +264,12 @@ public class InputManager : MonoBehaviour
         if (objRig)
         {
             holdParent.transform.rotation = Quaternion.identity;
-            //pickObj.transform.SetParent(holdParent);
             objRig.position = holdParent.transform.position;
             objRig.useGravity = false;
             objRig.rotation = Quaternion.identity;
             objRig.drag = 10;
 
             heldObj = pickObj;
-            // Rigidbody objRig = pickObj.GetComponent<Rigidbody>();
-
-            
-            // objRig.velocity = Vector3.zero;
-            // objRig.angularVelocity = Vector3.zero;
-
-            // objRig.transform.parent = holdParent;
-            // heldObj = pickObj;
-
-            // heldObj.GetComponent<Collider>().enabled = false;
-            // heldObj.GetComponent<Rigidbody>().velocity = Vector3.zero;
-            // heldObj.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
-            // heldObj.transform.rotation = Quaternion.identity;
-            //heldObj.transform.position = holdParent.position;
-
         }
     }
 
