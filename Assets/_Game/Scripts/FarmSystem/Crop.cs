@@ -41,8 +41,6 @@ public class Crop : MonoBehaviour
         GameObject copy = Instantiate(this.gameObject,Vector3.zero,Quaternion.identity);
         Crop sc = copy.AddComponent<Crop>();
 
-
-
         CropData scData = new CropData();
         GrowthStage[] scStages = new GrowthStage[this.cropData.growthStages.Length];
         for (int i = 0; i < this.cropData.growthStages.Length; i++)
@@ -127,7 +125,9 @@ public class Crop : MonoBehaviour
         // Unsubscribe
         if (cropData.currStageIndex >= cropData.growthStages.Length)
         {
-            EventManager.TriggerEvent(Events.GrowthCompleted, new Dictionary<string, object> { { "PlantID", cropData.cropID } });
+            //EventManager.TriggerEvent(Events.GrowthCompleted, new Dictionary<string, object> { { "PlantID", cropData.cropID } });
+
+            EventManager.TriggerEvent(Events.GrowthCompleted, new Dictionary<string, object> { { "FinishedCrop", this } });
             cropData.isGrown = true;
             EventManager.StopListening(Events.OnStageGrow, OnGrowEvent);
         }
@@ -135,7 +135,7 @@ public class Crop : MonoBehaviour
         {
             GrowthStage nextStage = cropData.growthStages[cropData.currStageIndex];
             growingItem.GetComponent<Renderer>().material.color = cropData.growthStages[cropData.currStageIndex].visualChange;
-            Debug.Log("PlantID = " + cropData.cropID + " Stage = " + cropData.growthStages[cropData.currStageIndex].description + " Change = " + cropData.growthStages[cropData.currStageIndex].visualChange);
+            //Debug.Log("PlantID = " + cropData.cropID + " Stage = " + cropData.growthStages[cropData.currStageIndex].description + " Change = " + cropData.growthStages[cropData.currStageIndex].visualChange);
             cropData.currStageIndex++;
 
         }

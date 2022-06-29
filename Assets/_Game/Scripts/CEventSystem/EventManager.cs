@@ -4,8 +4,6 @@ using UnityEngine;
 
 namespace MCEvents
 {
-
-
     public class EventManager : MonoBehaviour
     {
         private Dictionary<string, Action<Dictionary<string, object>>> eventDictionary;

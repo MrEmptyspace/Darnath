@@ -85,7 +85,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 4
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 5937293235413272895, guid: 25cd413e0d6fb6348806d2dcd4bd3b8a, type: 3}
 --- !u!114 &373227848707657271

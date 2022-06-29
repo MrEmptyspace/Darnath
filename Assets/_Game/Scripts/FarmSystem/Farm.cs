@@ -16,13 +16,6 @@ public class Farm : MonoBehaviour
     //public Dictionary<string, Crop.GrowthStage[]> cropsStagesLookup = new Dictionary<string, Crop.GrowthStage[]>();
     GameObject[,] borderedFarmPlots;
     List<GameObject> cropSpots = new List<GameObject>();
-    //public FarmData farmData;
-    //public Vector3 farmPosition;
-
-    //public GameObject borderObject;
-    //public GameObject emptyPlotObject;
-
-    //public event Action OnStageGrow;
 
     public GameObject carrotPrefab;
 
@@ -40,9 +33,7 @@ public class Farm : MonoBehaviour
         {
             Destroy(gameObject);
         }
-
     }
-
     string cropIdGen(string cropName)
     {
         plantIDMarker++;
@@ -71,30 +62,12 @@ public class Farm : MonoBehaviour
                 new Crop.GrowthStage{description = "Stage 3",visualChange = Color.green}
             });
 
-        newCropData.growthTime = 5;
+        newCropData.growthTime = 1;
         //Crop newCrop = new Crop();
         GameObject tempObj = Instantiate(carrotPrefab, Vector3.zero, Quaternion.identity);
         Crop newCrop = tempObj.AddComponent<Crop>();
         newCrop.cropData = newCropData;
         cropsLookup.Add("carrot", newCrop);
-        //cropsStagesLookup.Add("carrot", newCrop.growthStages);
-        //Find all the crops and init them
-        //cropsList = new List<Crop>(FindObjectsOfType<Crop>());
-
-        // foreach (Crop crop in cropsList)
-        // {
-        //     crop.cropData = CreateNewCropData();
-        //     crop.StartGrowing();
-        // }
-
-        // cropsList[0].cropData = CreateNewCropData();
-        // cropsList[0].StartGrowing();
-
-        // cropsList[1].cropData = CreateNewCropData();
-        // cropsList[1].StartGrowing();
-
-        // cropsList[2].cropData = CreateNewCropData();
-        // cropsList[2].StartGrowing();
     }
     int cropIndex = 0;
 
@@ -106,23 +79,25 @@ public class Farm : MonoBehaviour
             Debug.Log("This item = " + collider.name);
             Item cropToBeAdd = collider.transform.GetComponent<Item>();
             //string firstFivChar = new string(cropToBeAdd.itemName.Take(5).ToArray());
-            if (cropToBeAdd.itemName.StartsWith("Seed-"))
+            if (cropToBeAdd != null)
             {
-                //Crop newCropData = CreateNewCropData(cropToBeAdd);
-                string trimmedCropName = cropToBeAdd.itemName.Substring(5).ToLower();
-                Crop newCropData = cropsLookup[trimmedCropName].DeepCopy();
-                newCropData.cropData.cropID = cropIdGen(newCropData.cropData.cropName);
-                newCropData.gameObject.transform.position = cropSpots[cropIndex].transform.position;
-                //ConvertItemToCrop(newCropData);
-                newCropData.StartGrowing();
-                cropIndex++;
-                cropsList.Add(newCropData);
+                if (cropToBeAdd.itemName.StartsWith("Seed-"))
+                {
+                    //Crop newCropData = CreateNewCropData(cropToBeAdd);
+                    string trimmedCropName = cropToBeAdd.itemName.Substring(5).ToLower();
+                    Crop newCropData = cropsLookup[trimmedCropName].DeepCopy();
+                    newCropData.cropData.cropID = cropIdGen(newCropData.cropData.cropName);
+                    newCropData.gameObject.transform.position = cropSpots[cropIndex].transform.position;
+                    //ConvertItemToCrop(newCropData);
+                    newCropData.StartGrowing();
+                    cropIndex++;
+                    cropsList.Add(newCropData);
 
-                //Destroy seeds
-                Destroy(collider.gameObject);
+                    //Destroy seeds
+                    Destroy(collider.gameObject);
+                }
             }
         }
-
 
     }
 
@@ -154,9 +129,15 @@ public class Farm : MonoBehaviour
 
     public void CropCompleted(Dictionary<string, object> message)
     {
-        Debug.Log("Crop Completed Message contents = " + message.ToString());
+       
+        Crop finishedCrop = (Crop)message["FinishedCrop"];
 
+        Debug.Log("Crop Completed Message contents = " + finishedCrop.cropData.cropName + " |  cropID= " + finishedCrop.cropData.cropID);
         
+        Rigidbody rb = finishedCrop.growingItem.AddComponent<Rigidbody>();
+        rb.useGravity = true;
+        rb.AddForce(Vector3.up * 10f, ForceMode.Force);
+
     }
 
 
