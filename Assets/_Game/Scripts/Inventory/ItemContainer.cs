@@ -53,7 +53,7 @@ public class ItemContainer : IItemContainer
                         itemSlots[i].items.AddRange(itemSlot.items);
                         itemSlot.items = new List<InventoryItem>();
 
-                        EventManager.TriggerEvent("InventoryUpdated");
+                        //EventManagerriggerEvent("InventoryUpdated");
                         return itemSlots[i];
                     }
                     else if (slotRemainingSpace > 0) //Stack as much as possible
@@ -81,7 +81,7 @@ public class ItemContainer : IItemContainer
                 if (itemSlot.quantity <= itemSlot.item.MaxStack)
                 {
                     itemSlots[i] = itemSlot;
-                    EventManager.TriggerEvent(Events.InventoryUpdated);
+                    //EventManagerriggerEvent(Events.InventoryUpdated);
                     return itemSlot;
                 }
                 else
@@ -93,7 +93,7 @@ public class ItemContainer : IItemContainer
                 }
             }
         }
-        EventManager.TriggerEvent(Events.InventoryUpdated);
+        //EventManagerriggerEvent(Events.InventoryUpdated);
 
         return itemSlot;
     }
@@ -131,7 +131,7 @@ public class ItemContainer : IItemContainer
 
         itemSlots[slotIndex] = new ItemSlot();
 
-        EventManager.TriggerEvent(Events.InventoryUpdated);
+        //EventManagerriggerEvent(Events.InventoryUpdated);
     }
 
     public void RemoveItem(ItemSlot itemSlot, int slotIndex = 0)
@@ -157,9 +157,9 @@ public class ItemContainer : IItemContainer
         itemSlots[indexOne] = secondSlot;
         itemSlots[indexTwo] = firstSlot;
 
-        EventManager.TriggerEvent(Events.InventoryUpdated);
+        //EventManagerriggerEvent(Events.InventoryUpdated);
         //Both slots have swapped. loop through hotbar and update indexes
-        EventManager.TriggerEvent(Events.HotbarUpdated, new Dictionary<string, object> { { "firstSlotIndex", indexOne }, { "secondSlotIndex", indexTwo } });
+       // EventManagerriggerEvent(Events.HotbarUpdated, new Dictionary<string, object> { { "firstSlotIndex", indexOne }, { "secondSlotIndex", indexTwo } });
     }
 
     public void Merge(int mergeSlotIndex, ItemSlot slotToMerge , int mergedFromIndex = -1)
@@ -187,14 +187,14 @@ public class ItemContainer : IItemContainer
                     itemSlots[mergedFromIndex] = new ItemSlot();
                 }
 
-                EventManager.TriggerEvent(Events.InventoryUpdated);
+                //EventManagerriggerEvent(Events.InventoryUpdated);
                 //indexOne Item is now null, so check for that index and make it equal second index
-                EventManager.TriggerEvent(Events.HotbarUpdated, new Dictionary<string, object> { { "firstSlotIndex", null }, { "secondSlotIndex", mergeSlotIndex }, { "merge", true } });
+                //EventManagerriggerEvent(Events.HotbarUpdated, new Dictionary<string, object> { { "firstSlotIndex", null }, { "secondSlotIndex", mergeSlotIndex }, { "merge", true } });
                 return;
             }
         }
 
-        EventManager.TriggerEvent(Events.InventoryUpdated);
+        //EventManagerriggerEvent(Events.InventoryUpdated);
     }
 
     public ItemSlot Split(int indexOne)
@@ -234,8 +234,8 @@ public class ItemContainer : IItemContainer
         firstSlot.quantity = firstSlot.quantity - splitQuantity;
         itemSlots[indexOne] = firstSlot;
 
-        EventManager.TriggerEvent(Events.InventoryUpdated);
-        EventManager.TriggerEvent(Events.HotbarUpdated, new Dictionary<string, object> { { "firstSlotIndex", indexOne }});
+        //EventManagerriggerEvent(Events.InventoryUpdated);
+        //EventManagerriggerEvent(Events.HotbarUpdated, new Dictionary<string, object> { { "firstSlotIndex", indexOne }});
 
         return splitSlot;
     }

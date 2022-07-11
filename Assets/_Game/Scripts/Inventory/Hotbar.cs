@@ -12,7 +12,7 @@ public class Hotbar: MonoBehaviour
     {
         hotbarSlots = GetComponentsInChildren<HotbarSlot>();
 
-        EventManager.StartListening(Events.HotbarUpdated, UpdateHotbarSlots);
+        //EventManagertartListening(Events.HotbarUpdated, UpdateHotbarSlots);
     }
 
     private void UpdateHotbarSlots(Dictionary<string, object> message)

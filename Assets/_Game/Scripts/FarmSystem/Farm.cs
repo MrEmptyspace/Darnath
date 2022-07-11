@@ -42,7 +42,7 @@ public class Farm : MonoBehaviour
 
     private void Start()
     {
-        EventManager.StartListening(Events.GrowthCompleted, CropCompleted);
+        EventManager.StartListening(MCEventTag.GrowthCompleted, CropCompleted);
 
         foreach (Transform child in transform)
         {
@@ -153,9 +153,11 @@ public class Farm : MonoBehaviour
         {
             yield return new WaitForSeconds(timeToGrow);
             //OnStageGrow?.Invoke(ID);
-            EventManager.TriggerEvent(Events.OnStageGrow, new Dictionary<string, object> { { "PlantID", ID } });
+            EventManager.TriggerEvent(MCEventTag.OnStageGrow, EventManager.SingleValue("PlantID",ID));
         }
     }
+
+
 
     //psudeo because drunk
     //Get each crop to call back to the farm to managage it 

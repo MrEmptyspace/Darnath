@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -133,7 +133,6 @@ public class InputManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.E))//Pressed
         {
             GetEKeyDown = true;
-
         }
         if (Input.GetMouseButton(0))
         {
@@ -176,13 +175,11 @@ public class InputManager : MonoBehaviour
                 Transform objectHit = hit.transform;
                 currentLookingAt = hit.transform.gameObject;
                 PickupObject(hit.transform.gameObject);
-
             }
             GetEKey = false;
         }
         if (GetEKeyDown)//Pressed
         {
-
             if (ePressCounter == 1 && heldObj != null)
             {
                 DropObject();
@@ -223,7 +220,7 @@ public class InputManager : MonoBehaviour
 
     void MovePlayer()
     {
-        Debug.Log("Move Direction Normalized = " + moveDirection.normalized + " | move speed =" + moveSpeed);
+        //Debug.Log("Move Direction Normalized = " + moveDirection.normalized + " | move speed =" + moveSpeed);
         rb.AddForce(moveDirection.normalized * moveSpeed, ForceMode.Acceleration);
         rb.AddForce(Vector3.down * additionalGravity * rb.mass);
     }

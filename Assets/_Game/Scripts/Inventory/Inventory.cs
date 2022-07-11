@@ -198,7 +198,7 @@ public class Inventory : MonoBehaviour
         splitSlotItemSlotRef = new ItemSlot();
 
         splitHolder.SetActive(false);
-        EventManager.TriggerEvent(Events.onMouseEndHoverTooltip);
+        EventManager.TriggerEvent(MCEventTag.onMouseEndHoverTooltip);
     }
 
     public void DropItem(HotbarSlot thisSlot)

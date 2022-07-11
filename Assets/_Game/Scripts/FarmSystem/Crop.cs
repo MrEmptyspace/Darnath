@@ -115,21 +115,24 @@ public class Crop : MonoBehaviour
         growingItem = transform.gameObject;
 
         Farm.instance.Grow(cropData.growthTime, cropData.growthStages.Length, cropData.cropID);
-        EventManager.StartListening(Events.OnStageGrow, OnGrowEvent);
+        EventManager.StartListening(MCEventTag.OnStageGrow, OnGrowEvent);
     }
 
     private void OnGrowEvent(Dictionary<string, object> eventData)
     {
-        if ((String)eventData["PlantID"] != cropData.cropID) return;
+       // if ((String)eventData["PlantID"] != cropData.cropID) return;
+
+        
 
         // Unsubscribe
         if (cropData.currStageIndex >= cropData.growthStages.Length)
         {
-            //EventManager.TriggerEvent(Events.GrowthCompleted, new Dictionary<string, object> { { "PlantID", cropData.cropID } });
+            //EventManager.TriggerEvent(EventManager.MCEventTag.GrowthCompleted, new Dictionary<string, object> { { "PlantID", cropData.cropID } });
 
-            EventManager.TriggerEvent(Events.GrowthCompleted, new Dictionary<string, object> { { "FinishedCrop", this } });
+            //EventManager.TriggerEvent(MCEventTag.GrowthCompleted, new Dictionary<string, object> { { "FinishedCrop", this } });
+            EventManager.TriggerEvent(MCEventTag.GrowthCompleted, EventManager.SingleValue("FinishedCrop",this));
             cropData.isGrown = true;
-            EventManager.StopListening(Events.OnStageGrow, OnGrowEvent);
+            EventManager.StopListening(MCEventTag.OnStageGrow, OnGrowEvent);
         }
         else
         {

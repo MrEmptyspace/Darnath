@@ -22,7 +22,7 @@ public class InventorySlot : ItemSlotUI, IDropHandler
     {
         inventory = this.transform.parent.parent.GetComponent<Inventory>();
         SlotIndex = transform.GetSiblingIndex();
-        EventManager.StartListening("InventoryUpdated",UpdateSlotUI);
+        //EventManager.StartListening(EventManager.MCEventTag.InventoryUpdated,UpdateSlotUI);
         UpdateSlotUI(null);
     }
 

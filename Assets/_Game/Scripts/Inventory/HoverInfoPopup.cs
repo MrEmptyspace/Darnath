@@ -20,8 +20,8 @@ public class HoverInfoPopup : MonoBehaviour
     private void Start()
     {
         popupCanvas = popupCanvasObject.GetComponent<Canvas>();
-        EventManager.StartListening(Events.onMouseStartHoverTooltip, DisplayInfo);
-        EventManager.StartListening(Events.onMouseEndHoverTooltip, HideInfo);
+        //EventManagertartListening(Events.onMouseStartHoverTooltip, DisplayInfo);
+        //EventManagertartListening(Events.onMouseEndHoverTooltip, HideInfo);
     }
 
     private void Update()

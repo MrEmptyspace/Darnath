@@ -4,9 +4,24 @@ using UnityEngine;
 
 namespace MCEvents
 {
+    public enum MCEventTag
+    {
+        DebugEvent,
+        InventoryUpdated,
+        ItemDropped,
+        onMouseStartHoverTooltip,
+        onMouseEndHoverTooltip,
+        HotbarUpdated,
+        OnStageGrow,
+        GrowthCompleted,
+    }
+
     public class EventManager : MonoBehaviour
     {
-        private Dictionary<string, Action<Dictionary<string, object>>> eventDictionary;
+
+        private Dictionary<int, Action<Dictionary<string, object>>> eventDict;
+
+        private Dictionary<int, Action<int>> eventIntDict;
 
         private static EventManager eventManager;
 
@@ -36,69 +51,136 @@ namespace MCEvents
 
         void Init()
         {
-            if (eventDictionary == null)
+            if (eventDict == null)
             {
-                eventDictionary = new Dictionary<string, Action<Dictionary<string, object>>>();
+                eventDict = new Dictionary<int, Action<Dictionary<string, object>>>();
+            }
+
+            if (eventIntDict == null)
+            {
+                eventIntDict = new Dictionary<int, Action<int>>();
             }
         }
 
-        public static void StartListening(string eventName, Action<Dictionary<string, object>> listener)
+
+        public static void StartListening(int eventEnumNum, Action<Dictionary<string, object>> listener)
         {
             Action<Dictionary<string, object>> thisEvent;
-            if (instance.eventDictionary.TryGetValue(eventName, out thisEvent))
+            if (instance.eventDict.TryGetValue(eventEnumNum, out thisEvent))
             {
                 thisEvent += listener;
-                instance.eventDictionary[eventName] = thisEvent;
+                instance.eventDict[eventEnumNum] = thisEvent;
             }
             else
             {
                 thisEvent += listener;
-                instance.eventDictionary.Add(eventName, thisEvent);
-                //Debug.Log("Added Event Listener | Count = " + instance.eventDictionary.Count);
+                instance.eventDict.Add(eventEnumNum, thisEvent);
             }
         }
 
-        public static void StopListening(string eventName, Action<Dictionary<string, object>> listener)
+        public static void StartListening(int eventEnumNum, Action<int> listener)
+        {
+            Action<int> thisEvent;
+            if (instance.eventIntDict.TryGetValue(eventEnumNum, out thisEvent))
+            {
+                thisEvent += listener;
+                instance.eventIntDict[eventEnumNum] = thisEvent;
+            }
+            else
+            {
+                thisEvent += listener;
+                instance.eventIntDict.Add(eventEnumNum, thisEvent);
+            }
+        }
+
+        public static void StartListening(MCEventTag eventEnum, Action<Dictionary<string, object>> listener)
+        {
+            StartListening((int)eventEnum, listener);
+        }
+
+        public static void StartListening(MCEventTag eventEnum, Action<int> listener)
+        {
+            StartListening((int)eventEnum, listener);
+        }
+
+        public static void StopListening(int eventEnumNum, Action<Dictionary<string, object>> listener)
         {
             if (eventManager == null) return;
             Action<Dictionary<string, object>> thisEvent;
-            if (instance.eventDictionary.TryGetValue(eventName, out thisEvent))
+            if (instance.eventDict.TryGetValue(eventEnumNum, out thisEvent))
             {
                 thisEvent -= listener;
-                instance.eventDictionary[eventName] = thisEvent;
+                instance.eventDict[eventEnumNum] = thisEvent;
             }
         }
+        public static void StopListening(int eventEnumNum, Action<int> listener)
+        {
+            if (eventManager == null) return;
+            Action<int> thisEvent;
+            if (instance.eventIntDict.TryGetValue(eventEnumNum, out thisEvent))
+            {
+                thisEvent -= listener;
+                instance.eventIntDict[eventEnumNum] = thisEvent;
+            }
+        }
+        public static void StopListening(MCEventTag eventEnum, Action<Dictionary<string, object>> listener)
+        {
+            StopListening((int)eventEnum, listener);
+        }
 
-        public static void TriggerEvent(string eventName, Dictionary<string, object> message)
+        public static void StopListening(MCEventTag eventEnum, Action<int> listener)
+        {
+            StopListening((int)eventEnum, listener);
+        }
+
+        public static void TriggerEvent(int eventEnumNum, Dictionary<string, object> message)
         {
             Action<Dictionary<string, object>> thisEvent = null;
-            if (instance.eventDictionary.TryGetValue(eventName, out thisEvent))
+            if (instance.eventDict.TryGetValue(eventEnumNum, out thisEvent))
             {
                 thisEvent.Invoke(message);
             }
         }
 
-        public static void TriggerEvent(string eventName, string value)
+        public static void TriggerEvent(int eventEnumNum, int message)
         {
-            Dictionary<string, object> message = new Dictionary<string, object>();
-            message.Add(eventName, value);
-            Action<Dictionary<string, object>> thisEvent = null;
-            if (instance.eventDictionary.TryGetValue(eventName, out thisEvent))
+            Action<int> thisEvent = null;
+            if (instance.eventIntDict.TryGetValue(eventEnumNum, out thisEvent))
             {
                 thisEvent.Invoke(message);
             }
         }
 
-        public static void TriggerEvent(string eventName)
+        public static void TriggerEvent(MCEventTag eventEnum, Dictionary<string, object> message)
         {
-            if (instance.eventDictionary.ContainsKey(eventName))
-            {
-                instance.eventDictionary[eventName].Invoke(null);
-            }
+            TriggerEvent((int)eventEnum, message);
+        }
 
+        public static void TriggerEvent(MCEventTag eventEnum, int message)
+        {
+            TriggerEvent((int)eventEnum, message);
+        }
+
+        public static void TriggerEvent(int eventId)
+        {
+            if (instance.eventDict.ContainsKey(eventId))
+            {
+                instance.eventDict[eventId].Invoke(null);
+            }
+        }
+
+        public static void TriggerEvent(MCEventTag eventEnum)
+        {
+            TriggerEvent((int)eventEnum);
         }
 
 
+        public static Dictionary<string, object> SingleValue(string valueName, object value)
+        {
+            var returnVal = new Dictionary<string, object>();
+            returnVal.Add(valueName, value);
+            return returnVal;
+        }
 
     }
 }
