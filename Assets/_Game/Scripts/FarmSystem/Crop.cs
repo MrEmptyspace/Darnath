@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
+using UnityEngine.UI;
 using UnityEngine;
 using MCEvents;
 
@@ -10,6 +11,8 @@ public class Crop : MonoBehaviour
 {
     public CropData cropData;
     public GameObject growingItem;
+
+    public GameObject growthBar;
 
     public class GrowthStage
     {
@@ -30,8 +33,9 @@ public class Crop : MonoBehaviour
         public bool isGrown;
 
         public int currStageIndex = 0;
-
-
+    }
+    private void Update(){
+        //growthBar.value = CalculateGrowthBar();
     }
 
     public Crop DeepCopy()
@@ -39,7 +43,7 @@ public class Crop : MonoBehaviour
         //Crop sc = new Crop();
 
         GameObject copy = Instantiate(this.gameObject,Vector3.zero,Quaternion.identity);
-        Crop sc = copy.AddComponent<Crop>();
+        Crop sc = copy.GetComponent<Crop>();
 
         CropData scData = new CropData();
         GrowthStage[] scStages = new GrowthStage[this.cropData.growthStages.Length];
@@ -61,70 +65,21 @@ public class Crop : MonoBehaviour
         return sc;
     }
 
-
-
-    //public static event Action<Crop> CropCompletedConversionToItem = delegate { };
-
-    /*public void DestroyGameObject()
-    {
-        Destroy(growingItem);
-    }*/
-
-    // public void Init(CropData cropData, int plotNumber)
-    // {
-    //     this.cropData = cropData;
-    //     this.plotNumber = plotNumber;
-    // }
-
-    //     public void PlantCrop(CropData cropData, int plotNumber)
-    // {
-    //     this.cropData = cropData;
-    //     this.plotNumber = plotNumber;
-    // }
-
-    // public IEnumerator Grow(int growForSeconds,int untilSeconds)
-    // {
-    //     isGrowing = true;
-    //     while (growForSeconds != untilSeconds)
-    //     {
-    //         cropData.growthProgress += 1;
-    //         growForSeconds += 1;
-    //         OnCropGrowth(cropData,plotNumber);
-    //         yield return new WaitForSeconds(1);
-    //     }
-    //     StopGrowing();  
-    // }
-
-    // public void StartGrowing()
-    // {
-    //     //int timeToFinish = cropData.timeToGrow - ;
-
-    //     if (cropData.growthProgress <= cropData.timeToGrow)
-    //     {
-    //         StartCoroutine(Grow(cropData.growthProgress, cropData.timeToGrow));
-    //     }
-    //     else
-    //     {
-    //         Debug.Log("Crop is already done");
-    //         Debug.Log("Name : " + cropData.cropName + " | Growth : " + cropData.growthProgress);
-    //     }  
-    // }
-
-    public void StartGrowing()
+    public void StartGrowingCrop()
     {
         growingItem = transform.gameObject;
+        growthBar.transform.position = transform.position + new Vector3(0,0.25f,0);
 
         Farm.instance.Grow(cropData.growthTime, cropData.growthStages.Length, cropData.cropID);
         EventManager.StartListening(MCEventTag.OnStageGrow, OnGrowEvent);
     }
 
     private void OnGrowEvent(Dictionary<string, object> eventData)
-    {
-       // if ((String)eventData["PlantID"] != cropData.cropID) return;
+    { 
+        //This checks to make sure the event matchs with the correct crop
+        if ((String)eventData["PlantID"] != cropData.cropID) return;
 
-        
-
-        // Unsubscribe
+        // Unsubscribe on the last growth stage
         if (cropData.currStageIndex >= cropData.growthStages.Length)
         {
             //EventManager.TriggerEvent(EventManager.MCEventTag.GrowthCompleted, new Dictionary<string, object> { { "PlantID", cropData.cropID } });
@@ -143,4 +98,5 @@ public class Crop : MonoBehaviour
 
         }
     }
+
 }

@@ -14,6 +14,7 @@ namespace MCEvents
         HotbarUpdated,
         OnStageGrow,
         GrowthCompleted,
+        SellItem
     }
 
     public class EventManager : MonoBehaviour

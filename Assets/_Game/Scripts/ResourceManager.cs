@@ -21,17 +21,15 @@ public class ResourceManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
-
         //uiElementsDic = new Dictionary<string, TextMeshProUGUI>();
         //uiElementsDic.Add("gold",GoldText);
         //textmeshPro.SetText("The first number is {0} and the 2nd is {1:2} and the 3rd is {3:0}.", 4, 6.345f, 3.5f);
-        EventManager.StartListening(MCEventTag.DebugEvent, UpdateGold);
+        EventManager.StartListening(MCEventTag.SellItem, UpdateGold);
     }
 
     private void OnDisable()
     {
-        EventManager.StopListening(MCEventTag.DebugEvent, UpdateGold);
+        EventManager.StopListening(MCEventTag.SellItem, UpdateGold);
     }
 
     // Update is called once per frame
@@ -39,7 +37,7 @@ public class ResourceManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.T))
         {
-            EventManager.TriggerEvent(MCEventTag.DebugEvent, 5);
+            EventManager.TriggerEvent(MCEventTag.SellItem, 5);
         }
         GoldAmount.text = goldAmount+"";
     }

@@ -236,9 +236,6 @@ public class InputManager : MonoBehaviour
         float distance = Vector3.Distance(heldObj.transform.position, holdParent.position);
         Vector3 moveDir = (holdParent.position - heldObj.transform.position);
         Rigidbody heldRig = heldObj.gameObject.GetComponent<Rigidbody>();
-
-        Debug.Log("Distance from heldObject to Hold Parent position" + distance + " | Move Direction = " + moveDir);
-
         if (distance > 0.1f)
         {
             Debug.DrawRay(heldObj.gameObject.transform.position, moveDir, Color.yellow, 30f);
@@ -252,7 +249,11 @@ public class InputManager : MonoBehaviour
 
 
         Quaternion newRotation = Quaternion.LookRotation(cam.transform.forward);
-        heldObj.gameObject.transform.rotation = newRotation;
+
+         Quaternion newRotation2 = Quaternion.LookRotation(holdParent.transform.up);
+        heldObj.gameObject.transform.rotation = newRotation2;
+
+
     }
 
     void PickupObject(GameObject pickObj)
