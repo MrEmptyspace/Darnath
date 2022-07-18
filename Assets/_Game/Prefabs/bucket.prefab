@@ -595,6 +595,7 @@ GameObject:
   - component: {fileID: 5065215872295889641}
   - component: {fileID: 7039044536442363427}
   - component: {fileID: 6970209353027506503}
+  - component: {fileID: 1516165691208621459}
   m_Layer: 6
   m_Name: bucket
   m_TagString: Untagged
@@ -611,7 +612,7 @@ Transform:
   m_GameObject: {fileID: 8840365708679495670}
   m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7060962174780635640}
@@ -689,3 +690,17 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!64 &1516165691208621459
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8840365708679495670}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -5495902117074765545, guid: 74cbc032c88ea054296a2ee712e3c786, type: 3}

@@ -158,40 +158,117 @@ public class InputManager : MonoBehaviour
         rb.AddForce(character.up * jumpForce, ForceMode.Impulse);
     }
 
+    float sameItemPickupCD = 0.9f;
+
     private void FixedUpdate()
     {
         MovePlayer();
-        //Move/throw the object because I use force
-        if (GetEKey) //PickingUp
+        //Debug.Log(pickupCD);
+        //Debug.Log(diff);
+
+        if (GetEKeyDown && heldObj == null) //PickingUp
         {
-            //Debug.DrawRay(character.transform.position, character.transform.TransformDirection(Vector3.forward).normalized * pickUpRange, Color.red, 10f);                //   if (lastHeldObj != currentLookingAt)
-            //    {
             RaycastHit hit;
             Ray ray = cam.ViewportPointToRay(new Vector3(0.5F, 0.5F, 0));
             Debug.DrawRay(ray.origin, ray.direction * pickUpRange, Color.blue, 60f);
-
-            if (Physics.Raycast(ray, out hit, pickUpRange, itemLayerMask))
+            if (Physics.Raycast(ray, out hit, pickUpRange, itemLayerMask) && heldObj == null)
             {
                 Transform objectHit = hit.transform;
                 currentLookingAt = hit.transform.gameObject;
                 PickupObject(hit.transform.gameObject);
-            }
-            GetEKey = false;
-        }
-        if (GetEKeyDown)//Pressed
-        {
-            if (ePressCounter == 1 && heldObj != null)
-            {
-                DropObject();
-                ePressCounter = 0;
-            }
-            else if (heldObj != null)
-            {
-                ePressCounter++;
-            }
 
+            }
             GetEKeyDown = false;
         }
+        if (GetEKeyDown && heldObj != null)
+        {
+            Debug.Log("Dropping Item");
+            DropObject();
+        }
+        // else if(GetEKeyDown && heldObj != null){
+        //     Debug.Log("Dropping Item");
+        //     DropObject();
+        //     GetEKeyDown = false;
+        // }
+
+        //         if(GetEKey && heldObj == null) //PickingUp
+        // {
+        //     RaycastHit hit;
+        //     Ray ray = cam.ViewportPointToRay(new Vector3(0.5F, 0.5F, 0));
+        //     Debug.DrawRay(ray.origin, ray.direction * pickUpRange, Color.blue, 60f);
+
+        //     if (Physics.Raycast(ray, out hit, pickUpRange, itemLayerMask) && heldObj == null)
+        //     {
+        //         Transform objectHit = hit.transform;
+        //         currentLookingAt = hit.transform.gameObject;
+        //         PickupObject(hit.transform.gameObject);
+        //         Debug.Log("Picking Up Item");
+        //     }
+        //     GetEKey = false;
+        // }
+
+
+        // else if(GetEKeyDown && heldObj != null){
+        //     Debug.Log("Dropping Item");
+        //     DropObject();
+        //     GetEKeyDown = false;
+        // }
+
+        // if (GetEKeyDown && heldObj != null)
+        // {
+        //     Debug.Log("Should drop the object");
+        //     DropObject();
+        //     GetEKeyDown = false;
+        // }
+        // else if (GetEKey && heldObj == null) //PickingUp
+        // {
+        //     RaycastHit hit;
+        //     Ray ray = cam.ViewportPointToRay(new Vector3(0.5F, 0.5F, 0));
+        //     Debug.DrawRay(ray.origin, ray.direction * pickUpRange, Color.blue, 60f);
+
+        //     if (Physics.Raycast(ray, out hit, pickUpRange, itemLayerMask) && heldObj == null)
+        //     {
+        //         Transform objectHit = hit.transform;
+        //         currentLookingAt = hit.transform.gameObject;
+        //         PickupObject(hit.transform.gameObject);
+        //     }
+        //     GetEKey = false;
+        // }
+
+
+        // if (GetEKey && heldObj == null) //PickingUp
+        // {
+        //     RaycastHit hit;
+        //     Ray ray = cam.ViewportPointToRay(new Vector3(0.5F, 0.5F, 0));
+        //     Debug.DrawRay(ray.origin, ray.direction * pickUpRange, Color.blue, 60f);
+
+        //     if (Physics.Raycast(ray, out hit, pickUpRange, itemLayerMask) && heldObj == null)
+        //     {
+        //         Transform objectHit = hit.transform;
+        //         currentLookingAt = hit.transform.gameObject;
+        //         PickupObject(hit.transform.gameObject);
+        //     }
+        //     GetEKey = false;
+        // }
+        // else if (GetEKey && heldObj != null)
+        // {
+        //     Debug.Log("Should drop the object");
+        //     DropObject();
+        // }
+        // if (GetEKeyDown)//Pressed
+        // {
+        //     if (ePressCounter == 1 && heldObj != null)
+        //     {
+        //         DropObject();
+        //         ePressCounter = 0;
+        //     }
+        //     else if (heldObj != null)
+        //     {
+        //         ePressCounter++;
+        //     }
+
+        //     GetEKeyDown = false;
+        // }
         if (GetMouse0 && heldObj != null)
         {
             Rigidbody heldRig = heldObj.GetComponent<Rigidbody>();
@@ -201,9 +278,11 @@ public class InputManager : MonoBehaviour
         if (heldObj != null)
         {
             MoveObject();
+
         }
         GetMouse0 = false;
     }
+
     void DropObject()
     {
         Rigidbody heldRig = heldObj.GetComponent<Rigidbody>();
@@ -216,6 +295,21 @@ public class InputManager : MonoBehaviour
         heldObj.transform.parent = null;
         heldObj = null;
 
+        //Start courtine to reset last help object.
+        StartCoroutine(WaitAndTrigger(sameItemPickupCD,ResetLastHeldObj));
+    }
+
+    private IEnumerator WaitAndTrigger(float waitTime,Action handler)
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(waitTime);
+            handler.Invoke();
+        }
+    }
+
+    private void ResetLastHeldObj(){
+        lastHeldObj = null;
     }
 
     void MovePlayer()
@@ -247,12 +341,10 @@ public class InputManager : MonoBehaviour
             heldObj.gameObject.transform.position = Vector3.Lerp(heldRig.position, holdParent.position, 0.5f);
         }
 
-
         Quaternion newRotation = Quaternion.LookRotation(cam.transform.forward);
 
-         Quaternion newRotation2 = Quaternion.LookRotation(holdParent.transform.up);
+        Quaternion newRotation2 = Quaternion.LookRotation(holdParent.transform.up);
         heldObj.gameObject.transform.rotation = newRotation2;
-
 
     }
 
@@ -261,13 +353,17 @@ public class InputManager : MonoBehaviour
         Rigidbody objRig = pickObj.GetComponent<Rigidbody>();
         if (objRig)
         {
-            holdParent.transform.rotation = Quaternion.identity;
-            objRig.position = holdParent.transform.position;
-            objRig.useGravity = false;
-            objRig.rotation = Quaternion.identity;
-            objRig.drag = 10;
+            if (pickObj != lastHeldObj)
+            {
+                holdParent.transform.rotation = Quaternion.identity;
+                objRig.position = holdParent.transform.position;
+                objRig.useGravity = false;
+                objRig.rotation = Quaternion.identity;
+                objRig.drag = 10;
 
-            heldObj = pickObj;
+                heldObj = pickObj;
+            }
+
         }
     }
 

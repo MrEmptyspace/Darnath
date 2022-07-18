@@ -88,7 +88,7 @@ public class Farm : MonoBehaviour
 
         if (collider.gameObject.layer == LayerMask.NameToLayer("Item"))
         {
-            Debug.Log("This item = " + collider.name);
+           // Debug.Log("This item = " + collider.name);
             Item cropToBeAdd = collider.transform.GetComponent<Item>();
             //string firstFivChar = new string(cropToBeAdd.itemName.Take(5).ToArray());
             if (cropToBeAdd != null)
@@ -176,7 +176,7 @@ public class Farm : MonoBehaviour
                 //Calculate the percentage of done
                 //float totalGrowthTime = crop.cropData.growthStages.Length * crop.cropData.growthTime;
                 progressAmount = (float) crop.cropData.currStageIndex / (float) crop.cropData.growthStages.Length;
-                Debug.Log("" + crop.cropData.currStageIndex + " /" + crop.cropData.growthStages.Length + " = " + progressAmount);
+//                Debug.Log("" + crop.cropData.currStageIndex + " /" + crop.cropData.growthStages.Length + " = " + progressAmount);
                 if(crop.growthBar != null){
                     Slider bar = crop.growthBar.GetComponentInChildren<Slider>();
                     bar.value = progressAmount;
