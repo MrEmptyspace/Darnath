@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Item : MonoBehaviour
+public class Item : MonoBehaviour , ISellable
 {
     [SerializeField]
     public int sellPrice;
@@ -10,4 +10,7 @@ public class Item : MonoBehaviour
     [SerializeField]
     public string itemName;
 
+    public float GetBasePrice(){
+        return sellPrice;
+    }
 }

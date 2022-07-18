@@ -11,7 +11,7 @@ public class ResourceManager : MonoBehaviour
     TextMeshProUGUI GoldAmount;
 
     [SerializeField]
-    GameObject SellArea;
+    public GameObject SellArea;
 
 
     int goldAmount;
@@ -35,10 +35,7 @@ public class ResourceManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.T))
-        {
-            EventManager.TriggerEvent(MCEventTag.SellItem, 5);
-        }
+
         GoldAmount.text = goldAmount+"";
     }
 
@@ -46,6 +43,22 @@ public class ResourceManager : MonoBehaviour
     public void UpdateGold(int goldAmount)
     {
         this.goldAmount += goldAmount;
+    }
+
+    public void SellItems(){
+        //go throw all that is on the table
+        List<GameObject> sellables = SellArea.GetComponent<SellArea>().sellablesInArea;
+
+        for (int i = 0; i < sellables.Count; i++)
+        {
+            float amountToAdd = sellables[i].GetComponent<ISellable>().GetBasePrice();
+            goldAmount+=(int)amountToAdd;
+        }
+
+    }
+
+    public void BuySeeds(){
+    
     }
 
 }
