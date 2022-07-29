@@ -55,6 +55,9 @@ public class InputManager : MonoBehaviour
     private bool GetEKeyDown = false;
     private bool GetMouse0 = false;
 
+    private bool GetMouse1 = false;
+
+
     float mouseX;
     float mouseY;
     float yRotation;
@@ -134,6 +137,10 @@ public class InputManager : MonoBehaviour
         {
             GetMouse0 = true;
         }
+        if (Input.GetMouseButton(1))
+        {
+            GetMouse1 = true;
+        }
         horizontalMovement = Input.GetAxisRaw("Horizontal");
         verticalMovement = Input.GetAxisRaw("Vertical");
         Vector3 forward = new Vector3(character.transform.forward.x, 0, character.transform.forward.z);
@@ -184,6 +191,19 @@ public class InputManager : MonoBehaviour
             heldRig.AddForce(throwingMarker.transform.forward * throwForce * 10f);
             DropObject();
         }
+        if (GetMouse1 && heldObj != null)
+        {
+            //Rotate the bucket and 
+            //Quaternion newRotation2 = Quaternion.LookRotation(Vector3.down);
+            //Debug.Log("Mouse 1 is right click?");
+            //Quaternion targetRotation = Quaternion.RotateTowards(character.rotation, Quaternion.);
+
+            //Smooth rotation
+            //heldObj.transform.rotation = Quaternion.Lerp(character.rotation, targetRotation, Time.deltaTime * 20);
+            
+            GetMouse1 = false;
+
+        }
         if (heldObj != null)
         {
             MoveObject();
@@ -205,10 +225,10 @@ public class InputManager : MonoBehaviour
         heldObj = null;
 
         //Start courtine to reset last help object.
-        StartCoroutine(WaitAndTrigger(sameItemPickupCD,ResetLastHeldObj));
+        StartCoroutine(WaitAndTrigger(sameItemPickupCD, ResetLastHeldObj));
     }
 
-    private IEnumerator WaitAndTrigger(float waitTime,Action handler)
+    private IEnumerator WaitAndTrigger(float waitTime, Action handler)
     {
         while (true)
         {
@@ -217,7 +237,8 @@ public class InputManager : MonoBehaviour
         }
     }
 
-    private void ResetLastHeldObj(){
+    private void ResetLastHeldObj()
+    {
         lastHeldObj = null;
     }
 
@@ -237,23 +258,27 @@ public class InputManager : MonoBehaviour
     {
         //&& velocity.magnitude > 0.0f
         float distance = Vector3.Distance(heldObj.transform.position, holdParent.position);
-        
+
         Vector3 moveDir = (holdParent.position - heldObj.transform.position);
         Rigidbody heldRig = heldObj.gameObject.GetComponent<Rigidbody>();
         if (distance > 0.1f)
         {
-            Debug.DrawRay(heldObj.gameObject.transform.position, moveDir, Color.yellow, 30f);
+            Debug.DrawRay(heldObj.gameObject.transform.position, moveDir, Color.yellow, 10f);
             heldObj.GetComponent<Rigidbody>().AddForce(moveDir * heldOjbMoveForce);
         }
         else if (distance < 0.099f)
         {
             //heldObj.gameObject.transform.position = holdParent.position;
             heldObj.gameObject.transform.position = Vector3.Lerp(heldRig.position, holdParent.position, 0.5f);
+
+            
         }
 
-        Quaternion newRotation = Quaternion.LookRotation(cam.transform.forward);
+        //Quaternion newRotation = Quaternion.LookRotation(cam.transform.forward);
 
-        Quaternion newRotation2 = Quaternion.LookRotation(holdParent.transform.up);
+        //Quaternion newRotation2 = Quaternion.LookRotation(holdParent.transform.up);
+        Quaternion newRotation2 = Quaternion.LookRotation(Vector3.up);
+
         heldObj.gameObject.transform.rotation = newRotation2;
 
     }
@@ -265,8 +290,9 @@ public class InputManager : MonoBehaviour
         {
             if (pickObj != lastHeldObj)
             {
+                //This cant move like this or else picking up stuff with other stuff in it doesn't work
                 holdParent.transform.rotation = Quaternion.identity;
-                objRig.position = holdParent.transform.position;
+                //objRig.position = holdParent.transform.position;
                 objRig.useGravity = false;
                 objRig.rotation = Quaternion.identity;
                 objRig.drag = 10;

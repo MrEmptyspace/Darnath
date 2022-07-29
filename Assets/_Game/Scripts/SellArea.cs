@@ -20,6 +20,7 @@ public class SellArea : MonoBehaviour
         // {
         //     sellablesInArea.Add(itemToBeSold);
         // }
+        Debug.Log("On Table collider name = " +collider.name);
 
         var tempMonoArray = collider.gameObject.GetComponents<MonoBehaviour>();
  
@@ -29,6 +30,7 @@ public class SellArea : MonoBehaviour
  
             if (tempSellable != null)
             {
+                Debug.Log("Adding monoBehaviour.gameObject to list = " + monoBehaviour.gameObject.name);
                 sellablesInArea.Add(monoBehaviour.gameObject);
             }
         }  
@@ -37,6 +39,11 @@ public class SellArea : MonoBehaviour
     }
 
     public void ResetSellArea(){
+
+        for (int i = 0; i < sellablesInArea.Count; i++)
+        {
+            Destroy(sellablesInArea[i].gameObject);
+        }
         sellablesInArea.Clear();
     }
 

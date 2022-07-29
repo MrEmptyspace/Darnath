@@ -51,7 +51,7 @@ public class Farm : MonoBehaviour
 
     private void Start()
     {
-        growthBarPrefab = Resources.Load ("GrowthProgressBar") as GameObject;
+        growthBarPrefab = Resources.Load("GrowthProgressBar") as GameObject;
         EventManager.StartListening(MCEventTag.GrowthCompleted, CropCompleted);
 
         foreach (Transform child in transform)
@@ -68,13 +68,13 @@ public class Farm : MonoBehaviour
         newCropData.cropID = cropIdGen(newCropData.cropName);
         newCropData.growthStages = (new[]
         {
-                new Crop.GrowthStage{description = "Stage 0",visualChange = Color.white},
-                new Crop.GrowthStage{description = "Stage 1",visualChange = Color.red},
-                new Crop.GrowthStage{description = "Stage 2",visualChange = Color.yellow},
-                new Crop.GrowthStage{description = "Stage 3",visualChange = Color.green}
+                new Crop.GrowthStage{description = "Stage 0",visualChange = Color.red},
+                new Crop.GrowthStage{description = "Stage 1",visualChange = Color.yellow},
+                new Crop.GrowthStage{description = "Stage 2",visualChange = Color.green}
+                //new Crop.GrowthStage{description = "Stage 3",visualChange = Color.green}
             });
 
-        newCropData.growthTime = 1;
+        newCropData.totalGrowthTime = 6f;
         //Crop newCrop = new Crop();
         GameObject tempObj = Instantiate(carrotPrefab, Vector3.zero, Quaternion.identity);
         Crop newCrop = tempObj.AddComponent<Crop>();
@@ -88,7 +88,7 @@ public class Farm : MonoBehaviour
 
         if (collider.gameObject.layer == LayerMask.NameToLayer("Item"))
         {
-           // Debug.Log("This item = " + collider.name);
+            // Debug.Log("This item = " + collider.name);
             Item cropToBeAdd = collider.transform.GetComponent<Item>();
             //string firstFivChar = new string(cropToBeAdd.itemName.Take(5).ToArray());
             if (cropToBeAdd != null)
@@ -100,11 +100,7 @@ public class Farm : MonoBehaviour
                     Crop newCropData = cropsLookup[trimmedCropName].DeepCopy();
                     newCropData.cropData.cropID = cropIdGen(newCropData.cropData.cropName);
                     newCropData.gameObject.transform.position = cropSpots[cropIndex].transform.position;
-                    //ConvertItemToCrop(newCropData);
-                    //Create Progress barUI
-                    //newCropData.gameObject.AddComponent
-                    //Instantiate (Resources.Load ("GrowthProgressBar") as GameObject);
-                    GameObject temp = Instantiate (growthBarPrefab,newCropData.transform);
+                    GameObject temp = Instantiate(growthBarPrefab, newCropData.transform);
                     newCropData.growthBar = temp;
                     //newCropData.gameObject.AddComponent(temp);
 
@@ -147,26 +143,34 @@ public class Farm : MonoBehaviour
     }
 
 
-    // Starts a coroutine and returns to the caller after it's time is passed
-    public void Grow(int timeToGrow, int stages, string ID)
+    public void Grow(float totalGrowthTime, int stages, string ID)
     {
-        StartCoroutine(StartGrowing(timeToGrow, stages, ID));
-
+        StartCoroutine(StartGrowing(totalGrowthTime, stages, ID));
     }
 
-    private IEnumerator StartGrowing(int timeToGrow, int stages, string ID)
+    private IEnumerator StartGrowing(float totalGrowthTime, int stages, string ID)
     {
+        float timePerStage = totalGrowthTime / stages;
+
         for (int stage = 0; stage < stages + 1; stage++)
         {
-            yield return new WaitForSeconds(timeToGrow);
-            //OnStageGrow?.Invoke(ID);
-            EventManager.TriggerEvent(MCEventTag.OnStageGrow, EventManager.SingleValue("PlantID", ID));
+            //If we are not at the final stage
+            if (stage != stages)
+            {
+                yield return new WaitForSeconds(timePerStage);
+                EventManager.TriggerEvent(MCEventTag.OnStageGrow, EventManager.SingleValue("PlantID", ID));
+            }
+            else
+            {
+                EventManager.TriggerEvent(MCEventTag.OnStageGrow, EventManager.SingleValue("PlantID", ID));
+            }
+
         }
     }
 
     private void CalculateGrowthBars()
     {
-        
+
         if (cropsList != null)
         {
             for (int i = 0; i < cropsList.Count; i++)
@@ -175,9 +179,11 @@ public class Farm : MonoBehaviour
                 float progressAmount = 0.0f;
                 //Calculate the percentage of done
                 //float totalGrowthTime = crop.cropData.growthStages.Length * crop.cropData.growthTime;
-                progressAmount = (float) crop.cropData.currStageIndex / (float) crop.cropData.growthStages.Length;
-//                Debug.Log("" + crop.cropData.currStageIndex + " /" + crop.cropData.growthStages.Length + " = " + progressAmount);
-                if(crop.growthBar != null){
+                //progressAmount = (float) crop.cropData.currStageIndex / (float) crop.cropData.growthStages.Length;
+                progressAmount = crop.cropData.currentGrowthTime / crop.cropData.totalGrowthTime;
+                //                Debug.Log("" + crop.cropData.currStageIndex + " /" + crop.cropData.growthStages.Length + " = " + progressAmount);
+                if (crop.growthBar != null)
+                {
                     Slider bar = crop.growthBar.GetComponentInChildren<Slider>();
                     bar.value = progressAmount;
                     //Debug.Log("progressAmount = " + progressAmount);
